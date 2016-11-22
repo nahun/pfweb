@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <form method="post" id="rule_list_form">
+        <div class="panel panel-default" style="margin-bottom: 10px">
+            <div class="panel-heading"><h2 class="panel-title">Rules</h2></div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-condensed">
+                    <thead class="thead-inverse">
+                        <tr>
+                            <th><!-- checkbox --></th>
+                            <th><!-- rule action --></th>
+                            <th>Interface</th>
+                            <th>Protocol</th>
+                            <th>Source</th>
+                            <th>Port</th>
+                            <th>Destination</th>
+                            <th>Port</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for rule in rules %}
+                        <tr>
+                            <td><input type="checkbox" id="rule_{{ rule.id }}" name="rule_{{ rule.id }}" value="{{ rule.id }}" /></td>
+                            <td width="70px">
+                                <span title="Traffic is {{ rule.action }}ed" class="glyphicon glyphicon-{% if rule.action == 'pass' %}ok{% else %}remove{% endif %} rule-{{ rule.action }}"></span>
+                                
+                                {% if rule.log %}
+                                <span title="Traffic is logged" class="glyphicon glyphicon-tasks"></span>
+                                {% endif %}
+
+                                {% if rule.quick %}
+                                <span title="Stop matching rules" class="glyphicon glyphicon-alert"></span>
+                                {% endif %}
+                            </td>
+                            <td>{{ rule.iface }}</td>
+                            <td>{{rule.af }} {{ rule.proto if rule.proto != '*' }}</td>
+                            <td>{% if rule.src_addr_type == 'table' %}&lt;{{ rule.src_addr }}&gt;{% else %}{{ rule.src_addr }}{% endif %}</td>
+                            <td>{{ port_ops[rule.src_port_op][2].format(rule.src_port) }}</td>
+                            <td>{% if rule.dst_addr_type == 'table' %}&lt;{{ rule.dst_addr }}&gt;{% else %}{{ rule.dst_addr }}{% endif %}</td>
+                            <td>{{ port_ops[rule.dst_port_op][2].format(rule.dst_port) }}</td>
+                            <td>{{ rule.label }}</td>
+                            <td align="right">
+                                <a href="/firewall/rules/edit/{{ rule.id}}"><span class="glyphicon glyphicon-edit glyph-link"></span></a>
+                                <span class="glyphicon glyphicon-trash glyph-link" onclick="remove_rule({{ rule.id }});"></span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+         <nav class="action-buttons">
+            <a class="btn btn-success" href="/firewall/rules/edit" role="button">
+                <span class="glyphicon glyphicon-plus"></span> Add
+            </a>
+            <button class="btn btn-danger" type="submit" value="true" name="delete_rules">
+                <span class="glyphicon glyphicon-trash"></span> Delete
+            </a>
+        </nav>
+    </form>
+</div>
+
+{% endblock %}
+{% block footer %}
+{{ super() }}
+
+<script type="text/javascript">
+// Submit form handler
+$("#rule_list_form").submit(function(event) {
+    resp = confirm("Are you sure you wish to delete the selected rules?");
+
+    if(resp == false) {
+        // Do not submit form
+        return false
+    }
+});
+</script>
+{% endblock %}

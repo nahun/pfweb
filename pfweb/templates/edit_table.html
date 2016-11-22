@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <form class="form-horizontal" method="post" action="/firewall/tables/edit{% if table.name %}/{{ table.name }}{% endif %}">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h2 class="panel-title">{% if table.name %}Edit{% else %}Add{% endif %} Table</h2></div>
+
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Name</label>
+                    <div class="col-sm-10">
+                        {% if table.name %}
+                        {{ table.name }}
+                        {% else %}
+                        <input type="text" class="form-control" id="name" name="name" value="{{ table.name }}" />
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Hint</label>
+                    <div class="col-sm-10">Enter each address in CIDR format eg 192.168.1.0/24 or fe80::ec3e:cdb0:6ed2:192f/64</div>
+                </div>                
+
+                <div class="form-group" id="address_fields">
+                    {% for addr in table.addrs %}
+                    <div class="col-sm-12 table-addresses" id="addr_container-{{ loop.index }}">
+                        <label class="col-sm-2 control-label">{% if loop.first %}Addresses{% endif %}</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="addr{{ loop.index }}" name="addr{{ loop.index }}" value="{{ addr }}" placeholder="Address" />
+                        </div>
+                        <div class="col-sm-2">
+                            <button class="btn btn-danger btn-sm" type="button" value="Remove" name="removeaddr{{ loop.index }}" name="removeaddr{{ loop.index }}" onclick="table_remove_addr({{ loop.index }});">
+                                <span class="glyphicon glyphicon-trash"></span>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-sm-12 table-addresses" id="addr_container-1">
+                        <label class="col-sm-2 control-label">Addresses</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" id="addr1" name="addr1" value="" placeholder="Address" />
+                        </div>
+                        <div class="col-sm-2">
+                            <button class="btn btn-danger btn-sm" type="button" value="Remove" name="removeaddr1" name="removeaddr1" onclick="table_remove_addr(1);">
+                                <span class="glyphicon glyphicon-trash"></span>
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-8 col-sm-offset-2" style="margin-bottom: 10px;">
+            <button class="btn btn-primary" type="submit" value="true" name="save" id="save">
+                <span class="glyphicon glyphicon-save"></span>
+                Save
+            </button>
+
+            <a class="btn btn-danger" href="/firewall/tables" role="button">Cancel</a>
+        </div>
+        <div class="col-sm-2">
+            <button class="btn btn-success" type="button" value="add" name="add" id="add" onclick="add_address();">
+                <span class="glyphicon glyphicon-plus"></span>
+                Add Address
+            </button>            
+        </div>
+    </form>
+</div>
+{% endblock %}

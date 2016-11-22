@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Bad Request{% endblock %}
+{% block content %}
+<div class="container">
+	<div class="alert alert-danger" role="alert"><span style="font-size: 22px;">Bad Request</span></div>
+	<p>Your request could not be understood by the server.</p>
+	{% if msg %}<p><b>Error Message:</b> {{ msg }}</p>{% endif %}
+</div>
+{% endblock %}

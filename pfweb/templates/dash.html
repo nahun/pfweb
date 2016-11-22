@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h2 class="panel-title">System Information</h2></div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-condensed">
+                    <tbody>
+                        <tr>
+                            <th>Hostname</th>
+                            <td>{{ sys_info.hostname }}</td>
+                        </tr>
+                        <tr>
+                            <th>Operating System</th>
+                            <td>{{ sys_info.os }}</td>
+                        </tr>
+                        <tr>
+                            <th>Uptime</th>
+                            <td>{{ sys_info.uptime }}</td>
+                        </tr>
+                        <tr>
+                            <th>Current Time</th>
+                            <td>{{ sys_info.current_time }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h2 class="panel-title">Interface Information</h2></div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-condensed">
+                    <tbody>
+                        {% for iface in if_info %}
+                        <tr>
+                            <th>{{ iface.name }}</th>
+                            <td>{% if iface.status %}<span class="glyphicon glyphicon-arrow-up iface-up"></span>{% else %}<span class="glyphicon glyphicon-arrow-down iface-down"></span>{% endif %}</td>
+                            <td>{{ iface.media }}</td>
+                            <td>
+                                {% for ip in iface.ipv4 %}{{ ip }}<br />{% endfor %}
+                                {% for ip in iface.ipv6 %}{{ ip }}<br />{% endfor %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h2 class="panel-title">Interface Statistics</h2></div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-condensed">
+                    {{ if_stats|safe }}
+                </table>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+{% endblock %}

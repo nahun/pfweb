@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    {% if remove_error|length > 0 %}
+    <div class="alert alert-danger alert-dismissible clearfix" role="alert">
+        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        <div class="pull-left">Cannot delete {% set comma = joiner(", ") %}{% for error in remove_error %}{{ comma() }}'{{ error }}'{% endfor %}. Currently in use.</div>
+    </div>
+    {% endif %}
+
+    <form method="post" id="table_list_form">
+        <div class="panel panel-default" style="margin-bottom: 10px">
+            <div class="panel-heading"><h2 class="panel-title">Tables</h2></div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-condensed">
+                    <thead class="thead-inverse">
+                        <tr>
+                            <th><!-- checkbox --></th>
+                            <th>Name</th>
+                            <th>Addresses</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for table in tables|sort(attribute="name") %}
+                        <tr>
+                            <td><input type="checkbox" id="table_{{ table.name }}" name="table_{{ table.name }}" value="{{ table.name }}" /></td>
+                            <td>{{ table.name }}</td>
+                            <td>
+                                {% set comma = joiner(", ") %}
+                                {% for addr in table.addrs %}{{ comma() }}{{ addr }}{% endfor %}
+                            </td>
+                            <td align="right">
+                                <a href="/firewall/tables/edit/{{ table.name }}"><span class="glyphicon glyphicon-edit glyph-link"></span></a>
+                                <span class="glyphicon glyphicon-trash glyph-link" onclick="remove_table('{{ table.name }}');"></span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+         <nav class="action-buttons">
+            <a class="btn btn-success" href="/firewall/tables/edit" role="button">
+                <span class="glyphicon glyphicon-plus"></span> Add
+            </a>
+            <button class="btn btn-danger" type="submit" value="true" name="delete_tables" id="delete_tables_submit">
+                <span class="glyphicon glyphicon-trash"></span> Delete
+            </a>
+        </nav>
+    </form>
+</div>
+{% endblock %}
+{% block footer %}
+{{ super() }}
+
+<script type="text/javascript">
+// Submit form handler
+$("#table_list_form").submit(function(event) {
+    resp = confirm("Are you sure you wish to delete the table(s)?");
+
+    if(resp == false) {
+        // Do not submit form
+        return false
+    }
+});
+</script>
+{% endblock %}

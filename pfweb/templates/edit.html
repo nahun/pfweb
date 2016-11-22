@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+<script>console.log(JSON.parse('{{ rule|tojson|safe }}'))</script>
+    <form class="form-horizontal" method="post" action="/firewall/rules/edit{% if rule.id or rule.id == 0 %}/{{ rule.id }}{% endif %}">
+        <div class="panel panel-default">
+            <div class="panel-heading"><h2 class="panel-title">{% if rule.id or rule.id == 0 %}Edit{% else %}Add{% endif %} Firewall Rule</h2></div>
+
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Action</label>
+                    <div class="col-sm-10">
+                        <select class="form-control" name="action" id="action">
+                            <option value="pass"{% if rule.action == 'pass' %} selected{% endif %}>Pass</option>
+                            <option value="block"{% if rule.action == 'block' %} selected{% endif %}>Block</option>
+                            <option value="reject"{% if rule.action == 'reject' %} selected{% endif %}>Reject</option>
+                        </select>
+                        <span class="help-block">Reject sets block-policy to return. Block drops the packet silently.
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Direction</label>
+                    <div class="col-sm-10">
+                        <select class="form-control" name="direction" id="direction">
+                            <option value="in"{% if rule.direction == 'in' %} selected{% endif %}>In</option>
+                            <option value="out"{% if rule.direction == 'out' %} selected{% endif %}>Out</option>
+                            <option value="both"{% if rule.direction == 'both' %} selected{% endif %}>Both</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Interface</label>
+                    <div class="col-sm-10">
+                        <select class="form-control" name="iface" id="iface">
+                            {% for iface in ifaces %}
+                            <option value="{{ iface }}"{% if rule.iface.lower() == iface %} selected{% endif %}>{{ iface }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Address Family</label>
+                    <div class="col-sm-10">
+                        <select class="form-control" name="af" id="af" onchange="toggle_fields();">
+                            <option value="*"{% if rule.af == '*' %} selected{% endif %}>Any</option>
+                            <option value="IPv4"{% if rule.af.lower() == 'ipv4' %} selected{% endif %}>IPv4</option>
+                            <option value="IPv6"{% if rule.af.lower() == 'ipv6' %} selected{% endif %}>IPv6</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Protocol</label>
+                    <div class="col-sm-10">
+                        <select class="form-control" name="proto" id="proto" onchange="toggle_fields();">
+                            <option value="*"{% if rule.proto == '*' %} selected{% endif %}>Any</option>
+                            <option value="TCP"{% if rule.proto.lower() == 'tcp' %} selected{% endif %}>TCP</option>
+                            <option value="UDP"{% if rule.proto.lower() == 'udp' %} selected{% endif %}>UDP</option>
+                            <option id="icmp_option" value="ICMP"{% if rule.proto.lower()[:4] == 'icmp' %} selected{% endif %}>ICMP</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" id="form_icmptype">
+                    <label class="col-sm-2 control-label">ICMP Type</label>
+                    <div class="col-sm-10">
+                        <select class="form-control" name="icmptype" id="icmptype">
+                            <option value="0"{% if rule.icmp_type == 0 %} selected{% endif %}>Any</option>
+                            {% for type, txt in icmp_types|dictsort %}
+                            <option value="{{ type }}"{% if rule.icmp_type|int - 1 == type %} selected{% endif %}>{{ txt }}</option>
+                            {% endfor %}
+                        </select>
+                        <select class="form-control" name="icmp6type" id="icmp6type" style="display: none;">
+                            <option value="0"{% if rule.icmp_type == 0 %} selected{% endif %}>Any</option>
+                            {% for type, txt in icmp6_types|dictsort %}
+                            <option value="{{ type }}"{% if rule.icmp_type|int - 1 == type %} selected{% endif %}>{{ txt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading"><h2 class="panel-title">Source</h2></div>
+
+            <div class="panel-body">
+
+                <div class="form-group" id="form_src_addr">
+                    <label class="col-sm-2 control-label">Source</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="src_addr" name="src_addr" value="{{ rule.src_addr }}" />
+                        <span class="help-block">CIDR Format. eg '192.168.1.0/24'. Set to '*' or blank to match any source address</span>
+                    </div>
+                </div>
+
+                <div class="form-group" id="form_src_port">
+                    <label class="col-sm-2 control-label">Source Port</label>
+                    <div class="col-sm-2">
+                        <select class="form-control" id="src_port_op" name="src_port_op">
+                        {% for type, value in port_ops|dictsort(by='value') %}
+                            <option value="{{ type }}"{% if rule.src_port_op == type %} selected{% endif %}>{{ value[1] }}</option>
+                        {% endfor %}
+                        </select>
+                        <span class="help-block">Port Type</span>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" id="src_port_from" name="src_port_from" value="{{ rule.src_port[0] if rule.src_port[0] }}" />
+                        <span class="help-block">From</span>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" id="src_port_to" name="src_port_to" value="{{ rule.src_port[1] if rule.src_port[1] }}" />
+                        <span class="help-block">To</span>
+                    </div>
+
+                    <div class="col-sm-10 col-sm-offset-2">
+                        <span class="help-block">Specify the source port or port range for this rule. The "To" field may be left empty if only filtering a single port. Both fields may be left empty if "Any" is chosen.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading"><h2 class="panel-title">Destination</h2></div>
+
+            <div class="panel-body">
+
+                <div class="form-group" id="form_dst_addr">
+                    <label class="col-sm-2 control-label">Destination</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="dst_addr" name="dst_addr" value="{% if rule.dst_addr.split('/')[1] == '32' or rule.dst_addr.split('/')[1] == '128' %}{{ rule.dst_addr.split('/')[0] }}{% else %}{{ rule.dst_addr }}{% endif %}" />
+                        <span class="help-block">CIDR Format. eg '192.168.1.0/24'. Set to '*' or blank to match any destination address</span>
+                    </div>
+                </div>
+
+                <div class="form-group" id="form_dst_port">
+                    <label class="col-sm-2 control-label">Destination Port</label>
+                    <div class="col-sm-2">
+                        <select class="form-control" id="dst_port_op" name="dst_port_op">
+                        {% for type, value in port_ops|dictsort(by='value') %}
+                            <option value="{{ type }}"{% if rule.dst_port_op == type %} selected{% endif %}>{{ value[1] }}</option>
+                        {% endfor %}
+                        </select>
+                        <span class="help-block">Port Type</span>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" id="dst_port_from" name="dst_port_from" value="{{ rule.dst_port[0] if rule.dst_port[0] }}" />
+                        <span class="help-block">From</span>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control" id="dst_port_to" name="dst_port_to" value="{{ rule.dst_port[1] if rule.dst_port[1] }}" />
+                        <span class="help-block">To</span>
+                    </div>
+
+                    <div class="col-sm-10 col-sm-offset-2">
+                        <span class="help-block">Specify the destination port or port range for this rule. The "To" field may be left empty if only filtering a single port. Both fields may be left empty if "Any" is chosen.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading"><h2 class="panel-title">Extra Options</h2></div>
+
+            <div class="panel-body">
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Log</label>
+                    <div class="col-sm-10">
+                        <input type="checkbox" name="log" id="log" value="true"{% if rule.log %} checked{% endif %} /> Log packets matched to this rule
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Quick</label>
+                    <div class="col-sm-10">
+                        <input type="checkbox" name="quick" id="quick" value="true"{% if rule.quick %} checked{% endif %} /> Stop evaluating rules when matched
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Keep State</label>
+                    <div class="col-sm-10">
+                        <input type="checkbox" name="keep_state" id="keep_state" value="true"{% if rule.keep_state %} checked{% endif %} /> Enable stateful tracking
+                    </div>
+                </div>                
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Description</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="label" name="label" value="{{ rule.label }}" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-sm-10 col-sm-offset-2" style="margin-bottom: 10px;">
+            <button class="btn btn-primary" type="submit" value="Save" name="save" id="save">
+                <span class="glyphicon glyphicon-save"></span>
+                Save
+            </button>
+
+            <a class="btn btn-danger" href="/firewall/rules" role="button">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block footer %}
+{{ super() }}
+
+<script type="text/javascript">
+// Run on page load
+toggle_fields();
+</script>
+{% endblock %}

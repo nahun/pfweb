@@ -1,0 +1,2 @@
+include *.md
+recursive-include pfweb *.html *.js *.css
