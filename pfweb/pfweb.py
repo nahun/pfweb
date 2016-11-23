@@ -1,5 +1,6 @@
 import pf
 import socket
+import json
 import platform, subprocess, time
 from datetime import timedelta
 
@@ -179,13 +180,14 @@ def dash():
     return render_template('dash.html', sys_info=sys_info, if_stats=ifstats_output, if_info=if_info, logged_in=flask_login.current_user.get_id(), hometab='active')
 
 @app.route("/firewall/rules", methods=['GET', 'POST'])
+@app.route("/firewall/rules/<int:message>", methods=['GET', 'POST'])
 @flask_login.login_required
-def rules():
+def rules(message=None):
     """Gather pf rules and show rules page"""
 
-    # Remove rules
     if request.method == 'POST':
-        if request.form['delete_rules'] == "true":
+        # Remove rules
+        if request.form.get('delete_rules') == "true":
             # Create list of rules to remove
             remove_list = list()
             for item, value in request.form.iteritems():
@@ -198,10 +200,41 @@ def rules():
                 ruleset.remove(value)
             # Load edited ruleset
             packetfilter.load_ruleset(ruleset)
-        return redirect(url_for('rules'), code=302)
+            message = PFWEB_ALERT_SUCCESS_DEL
+        # Set new order of rules
+        elif request.form.get('save_order'):
+            # Load JSON list
+            form_order = json.loads(request.form['save_order'])
+            # Load ruleset and rules. Create new ruleset to load
+            old_ruleset = packetfilter.get_ruleset()
+            old_rules = old_ruleset.rules
+            new_ruleset = pf.PFRuleset()
+
+            # Add the tables to the new ruleset
+            new_ruleset.append(*old_ruleset.tables)
+
+            # Run through new order and append each rule into their new spot
+            for old_index in form_order:
+                new_ruleset.append(old_rules[old_index])
+
+            # Load the ruleset back in
+            packetfilter.load_ruleset(new_ruleset)
+
+            message = PFWEB_ALERT_SUCCESS_ORDER
+
+        return redirect(url_for('rules', message=message), code=302)
+
+    if message == PFWEB_ALERT_SUCCESS_DEL:
+        message = { 'alert': 'success', 'msg': 'Successfully deleted rule(s)' }
+    elif message == PFWEB_ALERT_SUCCESS_ORDER:
+        message = { 'alert': 'success', 'msg': 'Successfully reordered rules' }
+    elif message == PFWEB_ALERT_SUCCESS_EDIT:
+        message = { 'alert': 'success', 'msg': 'Successfully edited rule' }
+    elif message == PFWEB_ALERT_SUCCESS_ADD:
+        message = { 'alert': 'success', 'msg': 'Successfully added rule' }
 
     rules = get_rules(packetfilter)
-    return render_template('rules.html', logged_in=flask_login.current_user.get_id(), fw_tab='active', rules=rules, port_ops=PFWEB_PORT_OPS)
+    return render_template('rules.html', logged_in=flask_login.current_user.get_id(), fw_tab='active', rules=rules, port_ops=PFWEB_PORT_OPS, message=message)
 
 @app.route("/firewall/rules/remove/<int:rule_id>")
 @flask_login.login_required
@@ -210,7 +243,7 @@ def remove_rule(rule_id):
     ruleset = packetfilter.get_ruleset()
     ruleset.remove(rule_id)
     packetfilter.load_ruleset(ruleset)
-    return redirect(url_for('rules'), code=302)
+    return redirect(url_for('rules', message=PFWEB_ALERT_SUCCESS_DEL), code=302)
 
 @app.route("/firewall/rules/edit/<int:rule_id>", methods=['GET', 'POST'])
 @app.route("/firewall/rules/edit", methods=['GET', 'POST'])
@@ -232,16 +265,19 @@ def edit_rule(rule_id=None):
             raise BadRequestError(rule)
 
         ruleset = packetfilter.get_ruleset()
+        message = None
         if rule_id or rule_id == 0:
             ruleset.remove(rule_id)
             ruleset.insert(rule_id, rule)
+            message = PFWEB_ALERT_SUCCESS_EDIT
         else:
             ruleset.append(rule)
+            message = PFWEB_ALERT_SUCCESS_ADD
 
         packetfilter.load_ruleset(ruleset)
     
         # redirect to rules page
-        return redirect(url_for('rules'), code=302)
+        return redirect(url_for('rules', message=message), code=302)
 
     # Load existing or create new rule
     if rule_id or rule_id == 0:
@@ -724,5 +760,5 @@ def sizeof_fmt(num, suffix='B'):
     return "%.1f %s%s" % (num, 'Yi', suffix)
 
 if __name__ == "__main__":
-    app.debug = False
+    app.debug = True
     app.run(host='0.0.0.0', port=80)

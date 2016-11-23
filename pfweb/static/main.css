@@ -32,6 +32,10 @@ body {
   color: #337ab7;
 }
 
+.text-danger {
+  color: #a94442;
+}
+
 .form-control {
     height: 24px;
     padding: 0 6px;
@@ -52,23 +56,27 @@ body {
 }
 
 .help-block {
-  margin-bottom: 2px;
+    margin-bottom: 2px;
 }
 
 .form-group {
-  margin-bottom: 0;
-  padding: 7px 5px 7px 5px;
-  border-bottom: 1px solid #E0E0E0;
+    margin-bottom: 0;
+    padding: 7px 5px 7px 5px;
+    border-bottom: 1px solid #E0E0E0;
 }
 
 .no-border {
-  border-bottom: 0px;
+    border-bottom: 0px;
 }
 
 .panel-body {
-  padding: 0px 15px 0px 15px;
+    padding: 0px 15px 0px 15px;
 }
 
 .table-addresses {
-  padding-bottom: 10px;
+    padding-bottom: 10px;
+}
+
+.table>tbody>tr.selected {
+    background-color: #BDBDBD;
 }

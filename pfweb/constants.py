@@ -75,3 +75,9 @@ PFWEB_ICMP6_TYPES = {
     MLD_MTRACE_RESP:             "mtrace Response",
     MLD_MTRACE:                  "mtrace Messages",
 }
+
+# Messages for the user
+PFWEB_ALERT_SUCCESS_DEL = 1
+PFWEB_ALERT_SUCCESS_ORDER = 2
+PFWEB_ALERT_SUCCESS_EDIT = 3
+PFWEB_ALERT_SUCCESS_ADD = 4

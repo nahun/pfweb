@@ -2,11 +2,18 @@
 
 {% block content %}
 <div class="container">
+    {% if message %}
+    <div class="alert alert-{{ message.alert }} alert-dismissible clearfix" role="alert">
+        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        <div class="pull-left">{{ message.msg }}</div>
+    </div>
+    {% endif %}
+
     <form method="post" id="rule_list_form">
         <div class="panel panel-default" style="margin-bottom: 10px">
             <div class="panel-heading"><h2 class="panel-title">Rules</h2></div>
             <div class="table-responsive">
-                <table class="table table-striped table-hover table-condensed">
+                <table class="table table-striped table-hover table-condensed" id="rulestable">
                     <thead class="thead-inverse">
                         <tr>
                             <th><!-- checkbox --></th>
@@ -23,7 +30,7 @@
                     </thead>
                     <tbody>
                     {% for rule in rules %}
-                        <tr>
+                        <tr id="rule_row_{{ rule.id }}">
                             <td><input type="checkbox" id="rule_{{ rule.id }}" name="rule_{{ rule.id }}" value="{{ rule.id }}" /></td>
                             <td width="70px">
                                 <span title="Traffic is {{ rule.action }}ed" class="glyphicon glyphicon-{% if rule.action == 'pass' %}ok{% else %}remove{% endif %} rule-{{ rule.action }}"></span>
@@ -44,8 +51,9 @@
                             <td>{{ port_ops[rule.dst_port_op][2].format(rule.dst_port) }}</td>
                             <td>{{ rule.label }}</td>
                             <td align="right">
-                                <a href="/firewall/rules/edit/{{ rule.id}}"><span class="glyphicon glyphicon-edit glyph-link"></span></a>
-                                <span class="glyphicon glyphicon-trash glyph-link" onclick="remove_rule({{ rule.id }});"></span>
+                                <span class="glyphicon glyphicon-bookmark glyph-link" title="Move checked rules above this one. Ctrl+Click to move selected rules below." id="moveR_{{ rule.id }}"></span>
+                                <a href="/firewall/rules/edit/{{ rule.id}}"><span class="glyphicon glyphicon-edit glyph-link" id="action_rule_{{ rule.id }}"></span></a>
+                                <span class="glyphicon glyphicon-trash glyph-link" id="action_rule_{{ rule.id }}" onclick="remove_rule({{ rule.id }});"></span>
                             </td>
                         </tr>
                     {% endfor %}
@@ -54,6 +62,10 @@
             </div>
         </div>
          <nav class="action-buttons">
+            <button class="btn btn-primary" type="button" value="true" name="move_rules" id="button_save_order" onclick="save_rules_order();" disabled>
+                <span class="glyphicon glyphicon-sort"></span> Save Order
+            </button>
+
             <a class="btn btn-success" href="/firewall/rules/edit" role="button">
                 <span class="glyphicon glyphicon-plus"></span> Add
             </a>
@@ -69,6 +81,91 @@
 {{ super() }}
 
 <script type="text/javascript">
+// Select row on click
+$('#rulestable > tbody > tr').on('click', function() {
+    if($(this).hasClass('selected')) {
+        $(this).removeClass('selected');
+        $(this).find('input:checkbox:first').prop("checked", false);
+    }
+    else {
+        $(this).addClass('selected');
+        $(this).find('input:checkbox:first').prop("checked", true);
+    }
+});
+
+$('[id^=action_rule_').click(function(event) {
+    event.stopImmediatePropagation();
+});
+
+// Move rule action
+$("[id^=moveR_").click(function(event) {
+    // Prevent click from toggling row
+    event.stopImmediatePropagation();
+    
+    // Save target rule position
+    var anchor_row = $(this).parents("tr:first");
+
+    if(event.ctrlKey) {
+        $($('#rulestable > tbody > tr').get().reverse()).each(function() {
+            // Get ID of the row
+            ruleid = this.id.slice(9);
+            if(ruleid) {
+                if($('#rule_' + ruleid).prop('checked')) {
+                    // Move selected row and unselect it. Add highlight class
+                    $(this).insertAfter(anchor_row);
+                    $('#rule_' + ruleid).prop('checked', false);
+                    $(this).removeClass('selected');
+                    $('#rule_row_' + ruleid).addClass("highlight");
+                }
+            }
+        });
+    }
+    else {
+        $('#rulestable > tbody > tr').each(function() {
+            // Get ID of the row
+            ruleid = this.id.slice(9);
+            if(ruleid) {
+                if($('#rule_' + ruleid).prop('checked')) {
+                    // Move selected row and unselect it. Add highlight class
+                    $(this).insertBefore(anchor_row);
+                    $('#rule_' + ruleid).prop('checked', false);
+                    $(this).removeClass('selected');
+                    $('#rule_row_' + ruleid).addClass("highlight");
+                }
+            }
+        });
+    }
+
+    // Fade out highlight color and remove the class
+    $('.highlight').effect("highlight", {}, 5000);
+    $('#rulestable tr').removeClass("highlight");
+
+    // Enable the save button
+    $("#button_save_order").prop("disabled", false);
+}).mouseover(function(e) {
+    var ruleselected = false;
+
+    // Determine if any rules are selected
+    $('[id^=rule_').each(function () {
+        if($(this).prop("checked")) {
+            ruleselected = true;
+        }
+    });
+
+    // Modify the icon to show where the rules will go
+    if(ruleselected) {
+        $(this).removeClass().addClass("glyphicon glyphicon-arrow-up glyph-link text-danger");
+    }
+}).mouseout(function(e) {
+    // Modify the icon back to the original
+    $(this).removeClass().addClass("glyphicon glyphicon-bookmark glyph-link");
+});
+
+// Hide alerts automatically after time
+$('.alert').fadeTo(10000, 500).slideUp(500, function(){
+    $(".alert").slideUp(500);
+});
+
 // Submit form handler
 $("#rule_list_form").submit(function(event) {
     resp = confirm("Are you sure you wish to delete the selected rules?");

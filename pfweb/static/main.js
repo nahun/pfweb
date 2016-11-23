@@ -1,3 +1,16 @@
+function save_rules_order() {
+	// Store new order in array with old location as value
+	var order = [];
+	$('#rulestable > tbody > tr').each(function(index, row) {
+		order.push(parseInt(row.id.slice(9)));
+	});
+	
+	// Create a form with a JSON array and submit
+	form = $('<form method="post" style="display: none;"></form>');
+	order_form = $('<input type="hidden" name="save_order" value="' + JSON.stringify(order) + '" />');
+	form.append(order_form).submit();
+}
+
 function remove_rule(rule) {
 	resp = confirm("Are you sure you wish to delete this rule?");
 
