@@ -29,7 +29,7 @@ or something similar.
 ## Dependencies
 
 - [OpenBSD 6.0+](http://www.openbsd.org/): Only tested on OpenBSD 6.0 amd64
-- [py-pf](http://www.kernel-panic.it/programming/py-pf/): Python module for 
+- [py-pf](http://www.kernel-panic.it/software/py-pf/): Python module for 
 managing OpenBSD's Packet Filter
 - [Flask](http://flask.pocoo.org/): A microframework for Python based on 
 Werkzeug and Jinja 2
@@ -41,7 +41,7 @@ for Flask
 Installation under a virtualenv will work fine.
 
 pfweb utilizes the well written 
-[py-pf module](http://www.kernel-panic.it/programming/py-pf/). The version in 
+[py-pf module](http://www.kernel-panic.it/software/py-pf/). The version in 
 PyPi is not up to date so you'll need to clone from the 
 [py-pf github repo](https://github.com/dotpy/py-pf) and install.
 
