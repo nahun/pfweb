@@ -87,8 +87,9 @@ def dash():
     """Show home dashboard"""
 
     # Get uptime
+    current_time = int(time.time())
     uptime_seconds = int(subprocess.check_output(["/sbin/sysctl", "-n", "kern.boottime"]))
-    uptime_delta = timedelta(seconds=(int(time.time()) - uptime_seconds))
+    uptime_delta = timedelta(seconds=(current_time - uptime_seconds))
 
     # Place info in a dict
     sys_info = {
@@ -177,7 +178,20 @@ def dash():
 
     ifstats_output += "</tbody>"
 
-    return render_template('dash.html', sys_info=sys_info, if_stats=ifstats_output, if_info=if_info, logged_in=flask_login.current_user.get_id(), hometab='active')
+    # Get overall PF stats
+    pf_status = packetfilter.get_status()
+    pf_status_since = current_time - int(pf_status.since)
+    pf_info = {
+        'enabled': pf_status.running,
+        'since': timedelta(seconds=pf_status_since),
+        'states': pf_status.states,
+        'match': { 'total': pf_status.cnt['match'], 'rate': "{:.1f}".format(pf_status.cnt['match'] / float(pf_status_since)) },
+        'searches': { 'total': pf_status.fcnt['searches'], 'rate': "{:.1f}".format(pf_status.fcnt['searches'] / float(pf_status_since)) },
+        'inserts': { 'total': pf_status.fcnt['inserts'], 'rate': "{:.1f}".format(pf_status.fcnt['inserts'] / float(pf_status_since)) },
+        'removals': { 'total': pf_status.fcnt['removals'], 'rate': "{:.1f}".format(pf_status.fcnt['removals'] / float(pf_status_since)) }
+    }
+
+    return render_template('dash.html', sys_info=sys_info, pf_info=pf_info, if_stats=ifstats_output, if_info=if_info, logged_in=flask_login.current_user.get_id(), hometab='active')
 
 @app.route("/firewall/rules", methods=['GET', 'POST'])
 @app.route("/firewall/rules/<int:message>", methods=['GET', 'POST'])
