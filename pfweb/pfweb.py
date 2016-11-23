@@ -607,17 +607,17 @@ def translate_rule(pfilter, **fields):
     if fields['proto'] == "ICMP":
         # Use ICMP or ICMP6 depending on AF
         if rule.af == socket.AF_INET:
-            if int(fields['icmptype']) in PFWEB_ICMP_TYPES:
-                rule.type = int(fields['icmptype']) + 1
-            elif int(fields['icmptype']) == 0:
+            if fields['icmptype'] == 'any':
                 rule.type = 0
+            elif int(fields['icmptype']) in PFWEB_ICMP_TYPES:
+                rule.type = int(fields['icmptype']) + 1
             else:
                 return "Invalid ICMP Type"
         elif rule.af == socket.AF_INET6:
-            if int(fields['icmp6type']) in PFWEB_ICMP6_TYPES:
-                rule.type = int(fields['icmp6type']) + 1
-            elif int(fields['icmp6type']) == 0:
+            if fields['icmp6type'] == 'any':
                 rule.type = 0
+            elif int(fields['icmp6type']) in PFWEB_ICMP6_TYPES:
+                rule.type = int(fields['icmp6type']) + 1
             else:
                 return "Invalid ICMP Type"
         else:

@@ -68,13 +68,13 @@
                     <label class="col-sm-2 control-label">ICMP Type</label>
                     <div class="col-sm-10">
                         <select class="form-control" name="icmptype" id="icmptype">
-                            <option value="0"{% if rule.icmp_type == 0 %} selected{% endif %}>Any</option>
+                            <option value="any"{% if rule.icmp_type == 0 %} selected{% endif %}>Any</option>
                             {% for type, txt in icmp_types|dictsort %}
                             <option value="{{ type }}"{% if rule.icmp_type|int - 1 == type %} selected{% endif %}>{{ txt }}</option>
                             {% endfor %}
                         </select>
                         <select class="form-control" name="icmp6type" id="icmp6type" style="display: none;">
-                            <option value="0"{% if rule.icmp_type == 0 %} selected{% endif %}>Any</option>
+                            <option value="any"{% if rule.icmp_type == 0 %} selected{% endif %}>Any</option>
                             {% for type, txt in icmp6_types|dictsort %}
                             <option value="{{ type }}"{% if rule.icmp_type|int - 1 == type %} selected{% endif %}>{{ txt }}</option>
                             {% endfor %}
