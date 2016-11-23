@@ -5,12 +5,11 @@ uses *py-pf* to interface with PF and Flask for the web framework. The look
 and feel is based on pfSense and a lot of the ideas are ripped off from them.
 
 ## Warning!
-I'm quite confident most (or all) OpenBSD developers would say running a web 
-interface for PF is a bad bad idea. There are many reasons why, but here are a 
-couple good ones:
+There are a lot of people that would say running a web interface for PF is a 
+bad idea. There are many reasons why, but here are a couple good ones:
 
 - **Security**: Running pfweb requires the user running the application to have
-access to */dev/pf* to make changes.
+write access to */dev/pf* to make changes. This gives access to the kernel.
 - **Features**: When using a web application to manage PF instead of 
 just modifying *pf.conf*, you lose massive amounts of powerful features and 
 flexibility.
