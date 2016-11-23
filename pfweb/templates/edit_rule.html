@@ -2,7 +2,6 @@
 
 {% block content %}
 <div class="container">
-<script>console.log(JSON.parse('{{ rule|tojson|safe }}'))</script>
     <form class="form-horizontal" method="post" action="/firewall/rules/edit{% if rule.id or rule.id == 0 %}/{{ rule.id }}{% endif %}">
         <div class="panel panel-default">
             <div class="panel-heading"><h2 class="panel-title">{% if rule.id or rule.id == 0 %}Edit{% else %}Add{% endif %} Firewall Rule</h2></div>

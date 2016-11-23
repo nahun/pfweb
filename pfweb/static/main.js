@@ -69,7 +69,6 @@ function toggle_fields() {
 		}
 
 		$.each(['src', 'dst'], function(i, val) {
-			console.log($('#' + val + '_addr_type').val());
 			if($('#' + val + '_addr_type').val() == 'addrmask') {
 				$('#' + val + '_addr_type').val('any');
 				addr_type(val, 'any');
