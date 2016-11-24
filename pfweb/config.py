@@ -11,7 +11,7 @@ class Config():
         """Read configuration file from one of multiple locations"""
         _config_parse = ConfigParser.ConfigParser()
         _configset = _config_parse.read([
-            os.getcwd() + "/pfweb.ini", 
+            os.path.expanduser('~') + "/.pfweb.ini", 
             '/etc/pfweb.ini',
             '/usr/local/etc/pfweb.ini'])
         

@@ -1,7 +1,7 @@
 import pf
 import socket
 import json
-import platform, subprocess, time, os
+import platform, subprocess, time, shutil
 from datetime import timedelta
 
 from flask import Flask, render_template, redirect, url_for, request
@@ -800,7 +800,7 @@ def save_pfconf(pfilter):
     with open("/tmp/pf.conf.pfweb", 'w+') as pfconf_f:
         pfconf_f.write(pfconf_text)
 
-    os.rename("/tmp/pf.conf.pfweb", "/etc/pf.conf")
+    shutil.copyfile("/tmp/pf.conf.pfweb", "/etc/pf.conf")
 
 if __name__ == "__main__":
     app.debug = True

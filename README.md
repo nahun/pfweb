@@ -124,13 +124,14 @@ accordingly.
 
 ### PF Permissions
 
-You'll need to give a user access to /dev/pf so we don't run anything as root. 
-Create or use whichever group you want, we'll use *pfweb*. Also make sure the 
-user running your webserver and FastCGI server is a member of that group.
+You'll need to give a user access to /dev/pf and /etc/pf.conf so we don't run 
+anything as root. Create or use whichever group you want, we'll use *pfweb*. 
+Also make sure the user running your webserver and FastCGI server is a member 
+of that group.
 
 ```
-# chown root:pfweb /dev/pf
-# chmod g+rw /dev/pf
+# chown root:pfweb /dev/pf /etc/pf.conf
+# chmod g+rw /dev/pf /etc/pf.conf
 ```
 
 ### Create a Config File
@@ -138,7 +139,7 @@ user running your webserver and FastCGI server is a member of that group.
 Now lets create the config file and username and password used to login to 
 pfweb. The *pfweb.ini* file can exist at:
 
-- Your current working directory
+- ~/.pfweb.ini
 - /etc/pfweb.ini
 - /usr/local/etc/pfweb.ini
 
