@@ -1,7 +1,7 @@
 import pf
 import socket
 import json
-import platform, subprocess, time
+import platform, subprocess, time, os
 from datetime import timedelta
 
 from flask import Flask, render_template, redirect, url_for, request
@@ -215,6 +215,8 @@ def rules(message=None):
             # Load edited ruleset
             packetfilter.load_ruleset(ruleset)
             message = PFWEB_ALERT_SUCCESS_DEL
+            # Save pf.conf
+            save_pfconf(packetfilter)
         # Set new order of rules
         elif request.form.get('save_order'):
             # Load JSON list
@@ -233,6 +235,8 @@ def rules(message=None):
 
             # Load the ruleset back in
             packetfilter.load_ruleset(new_ruleset)
+            # Save pf.conf
+            save_pfconf(packetfilter)
 
             message = PFWEB_ALERT_SUCCESS_ORDER
 
@@ -257,6 +261,7 @@ def remove_rule(rule_id):
     ruleset = packetfilter.get_ruleset()
     ruleset.remove(rule_id)
     packetfilter.load_ruleset(ruleset)
+    save_pfconf(packetfilter)
     return redirect(url_for('rules', message=PFWEB_ALERT_SUCCESS_DEL), code=302)
 
 @app.route("/firewall/rules/edit/<int:rule_id>", methods=['GET', 'POST'])
@@ -289,6 +294,7 @@ def edit_rule(rule_id=None):
             message = PFWEB_ALERT_SUCCESS_ADD
 
         packetfilter.load_ruleset(ruleset)
+        save_pfconf(packetfilter)
     
         # redirect to rules page
         return redirect(url_for('rules', message=message), code=302)
@@ -343,6 +349,7 @@ def tables(table_name=None):
 
             if len(remove_error) == 0:
                 packetfilter.del_tables(*remove_list)
+                save_pfconf(packetfilter)
                 return redirect(url_for('tables'), code=302)
                 
     tables = get_tables(packetfilter)
@@ -365,6 +372,8 @@ def edit_table(table_name=None):
             packetfilter.set_addrs(table_name, *table_addrs)
         else:
             packetfilter.add_tables(pf.PFTable(request.form['name'], *table_addrs, flags=pf.PFR_TFLAG_PERSIST))
+
+        save_pfconf(packetfilter)
 
         return redirect(url_for('tables'), code=302)
 
@@ -772,6 +781,26 @@ def sizeof_fmt(num, suffix='B'):
             return "%3.1f %s%s" % (num, unit, suffix)
         num /= 1024.0
     return "%.1f %s%s" % (num, 'Yi', suffix)
+
+def save_pfconf(pfilter):
+    """Save the pf.conf file"""
+
+    # Gather the tables
+    tables = pfilter.get_tables()
+    tables_pfconf = list()
+    # Convert into strings
+    for t in tables:
+        tables_pfconf.append("table <{}> persist {{ {} }}".format(t.name, " ".join("{}/{}".format(ta.addr, ntoc(ta.mask, ta.af)) for ta in t.addrs)))
+
+    # Use pfctl to get the rules
+    pfctl_rules = subprocess.check_output(["/sbin/pfctl", "-s", "rules"])
+
+    pfconf_text = "{}\n{}".format("\n".join(tables_pfconf), pfctl_rules)
+
+    with open("/tmp/pf.conf.pfweb", 'w+') as pfconf_f:
+        pfconf_f.write(pfconf_text)
+
+    os.rename("/tmp/pf.conf.pfweb", "/etc/pf.conf")
 
 if __name__ == "__main__":
     app.debug = True

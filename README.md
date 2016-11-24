@@ -21,10 +21,6 @@ I don't judge though, use it how you want. I've had fun making it as well.
 
 As of Nov 2016 pfweb is under initial development. Use at your own risk.
 
-Right now the PF config is not persistant across reboots. It does not store 
-rules configured yet, only in the active PF config. The plan is to use Pickle 
-or something similar.
-
 ## Dependencies
 
 - [OpenBSD 6.0+](http://www.openbsd.org/): Only tested on OpenBSD 6.0 amd64
