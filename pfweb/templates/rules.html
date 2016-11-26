@@ -79,6 +79,8 @@
 {% endblock %}
 {% block footer %}
 {{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/jquery-ui.min.css') }}">
+<script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
 
 <script type="text/javascript">
 // Select row on click
