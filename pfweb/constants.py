@@ -1,4 +1,5 @@
 from pf.constants import *
+import socket
 
 """pfweb constants used in the templates"""
 
@@ -74,6 +75,74 @@ PFWEB_ICMP6_TYPES = {
     ICMP6_NI_REPLY:              "ICMP Node Information Response",
     MLD_MTRACE_RESP:             "mtrace Response",
     MLD_MTRACE:                  "mtrace Messages",
+}
+
+# Protocol Types Descriptions
+PFWEB_IPPROTO = {
+    socket.IPPROTO_IP:       "IP",
+    socket.IPPROTO_ICMP:     "ICMP",
+    socket.IPPROTO_IGMP:     "IGMP",
+    socket.IPPROTO_IPIP:     "IPIP",
+    socket.IPPROTO_TCP:      "TCP",
+    socket.IPPROTO_EGP:      "EGP",
+    socket.IPPROTO_PUP:      "PUP",
+    socket.IPPROTO_UDP:      "UDP",
+    socket.IPPROTO_IDP:      "IDP",
+    socket.IPPROTO_TP:       "TP",
+    socket.IPPROTO_IPV6:     "IPv6",
+    socket.IPPROTO_ROUTING:  "Routing",
+    socket.IPPROTO_FRAGMENT: "Fragment",
+    socket.IPPROTO_RSVP:     "RSVP",
+    socket.IPPROTO_GRE:      "GRE",
+    socket.IPPROTO_ESP:      "ESP",
+    socket.IPPROTO_AH:       "AH",
+    socket.IPPROTO_ICMPV6:   "ICMPv6",
+    socket.IPPROTO_NONE:     "None",
+    socket.IPPROTO_DSTOPTS:  "DSTOPTS",
+    socket.IPPROTO_PIM:      "PIM",
+    socket.IPPROTO_RAW:      "RAW"
+}
+
+PFWEB_AF = {
+    socket.AF_UNSPEC:    "UNSPEC",
+    socket.AF_UNIX:      "UNIX",
+    socket.AF_INET:      "INET",
+    socket.AF_SNA:       "SNA",
+    socket.AF_DECnet:    "DECnet",
+    socket.AF_APPLETALK: "APPLETALK",
+    socket.AF_ROUTE:     "ROUTE",
+    socket.AF_IPX:       "IPX",
+    socket.AF_INET6:     "INET6",
+    socket.AF_KEY:       "KEY"
+}
+
+PFWEB_TCP_STATES = {
+    TCPS_CLOSED:       "CLOSED",
+    TCPS_LISTEN:       "LISTEN",
+    TCPS_SYN_SENT:     "SYN_SENT",
+    TCPS_SYN_RECEIVED: "SYN_RECEIVED",
+    TCPS_ESTABLISHED:  "ESTABLISHED",
+    TCPS_CLOSE_WAIT:   "CLOSE_WAIT",
+    TCPS_FIN_WAIT_1:   "FIN_WAIT_1",
+    TCPS_CLOSING:      "CLOSING",
+    TCPS_LAST_ACK:     "LAST_ACK",
+    TCPS_FIN_WAIT_2:   "FIN_WAIT_2",
+    TCPS_TIME_WAIT:    "TIME_WAIT",
+    TCP_NSTATES:       "NSTATES"
+}
+
+PFWEB_UDP_STATES = {
+    PFUDPS_NO_TRAFFIC: "NO_TRAFFIC",
+    PFUDPS_SINGLE:     "SINGLE",
+    PFUDPS_MULTIPLE:   "MULTIPLE",
+    PFUDPS_NSTATES:    "NSTATES"
+}
+
+PFWEB_OTHER_STATES = {
+    PFOTHERS_NO_TRAFFIC: "NO_TRAFFIC",
+    PFOTHERS_SINGLE:     "SINGLE",
+    PFOTHERS_MULTIPLE:   "MULTIPLE",
+    PFOTHERS_NSTATES:    "NSTATES",
 }
 
 # Messages for the user

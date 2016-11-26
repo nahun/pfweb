@@ -4,7 +4,7 @@ import json
 import platform, subprocess, time, shutil
 from datetime import timedelta
 
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, jsonify
 import flask_login
 
 from config import Config
@@ -395,6 +395,126 @@ def edit_table(table_name=None):
     return render_template('edit_table.html', logged_in=flask_login.current_user.get_id(), fw_tab='active',
         table=table)
 
+@app.route('/status/pfinfo')
+@flask_login.login_required
+def pfinfo():
+    """Display most information that `pfctl -s info -v` would"""
+
+    status = { 
+        'info': packetfilter.get_status(),
+        'ifaces': packetfilter.get_ifaces(),
+        'limits': packetfilter.get_limit(),
+        'timeouts': packetfilter.get_timeout()
+    }
+
+    return render_template('pfinfo.html', logged_in=flask_login.current_user.get_id(), status_tab='active', status=status)
+
+@app.route('/status/states', methods=['GET', 'POST'])
+@flask_login.login_required
+def states():
+    """Show all contents of the state table and allow a state to be removed"""
+
+    if request.method == 'POST':
+        # Remove individual state
+        if request.form.get('action') == 'remove':
+            # Make sure correct parameters were sent
+            if request.form.get('src') and request.form.get('dst'):
+                if '[' in request.form.get('src') or '.' not in request.form.get('src'):
+                    # Handle IPv6 addresses
+                    src_addr_port = request.form.get('src').split('[')
+                    dst_addr_port = request.form.get('dst').split('[')
+                    # Make sure there was a port set
+                    if len(src_addr_port) == 2:
+                        src_addr_port[1] = src_addr_port[1].split(']')[0]
+                    else:
+                        src_addr_port.append(0)
+                    if len(dst_addr_port) == 2:
+                        dst_addr_port[1] = dst_addr_port[1].split(']')[0]
+                    else:
+                        dst_addr_port.append(0)
+
+                else:
+                    # IPv4 address and port
+                    src_addr_port = request.form.get('src').split(':')
+                    dst_addr_port = request.form.get('dst').split(':')
+
+                # Create PFRuleAddr object from address and ports
+                src_addr = pf.PFRuleAddr(pf.PFAddr(src_addr_port[0]), 
+                    pf.PFPort(src_addr_port[1], 0, pf.PF_OP_EQ))
+                dst_addr = pf.PFRuleAddr(pf.PFAddr(dst_addr_port[0]), 
+                    pf.PFPort(dst_addr_port[1], 0, pf.PF_OP_EQ))
+
+                packetfilter.kill_states(src=src_addr, dst=dst_addr)
+
+                # Return a JSON object of just the src and dst we removed
+                return jsonify({ 'src': "{}".format(request.form.get('src')), 'dst': "{}".format(request.form.get('dst')) })
+            else:
+                # Return a simple 400 response when src or dst were not provided
+                message = {
+                    'status': 400,
+                    'message': 'Invalid parameters'
+                }
+                resp = jsonify(message)
+                resp.status_code = 400
+                return resp
+        else:
+            # Return a simple 400 response the wrong action provided
+            message = {
+                'status': 400,
+                'message': 'Unknown action'
+            }
+            resp = jsonify(message)
+            resp.status_code = 400
+            return resp
+
+    states = list()
+
+    for state in packetfilter.get_states():
+        # Set direction for src and dst
+        (src, dst) = (1, 0) if state.direction == pf.PF_OUT else (0, 1)
+
+        # Set the source address and port. Only set port if it is not 0
+        src_line = "{}".format(state.nk.addr[src])
+        if str(state.nk.port[src]):
+            src_line += (":{}" if state.af == socket.AF_INET else "[{}]").format(state.nk.port[src])
+        # Show and NAT (or rdr) address
+        if (state.nk.addr[src] != state.sk.addr[src] or state.nk.port[src] != state.sk.port[src]):
+            src_line += " ({}".format(state.sk.addr[src])
+            if str(state.sk.port[src]):
+                src_line += (":{})" if state.af == socket.AF_INET else "[{}])").format(state.sk.port[src])
+
+        # Repeat for destination
+        dst_line = "{}".format(state.nk.addr[dst])
+        if str(state.nk.port[dst]):
+            dst_line += (":{}" if state.af == socket.AF_INET else "[{}]").format(state.nk.port[dst])
+
+        if (state.nk.addr[dst] != state.sk.addr[dst] or state.nk.port[dst] != state.sk.port[dst]):
+            dst_line += " ({}".format(state.sk.addr[dst])
+            if str(state.sk.port[dst]):
+                dst_line += (":{})" if state.af == socket.AF_INET else "[{}])").format(state.sk.port[dst])
+
+        state_desc = ""
+        if state.proto == socket.IPPROTO_TCP:
+            state_desc = "{}:{}".format(PFWEB_TCP_STATES[state.src.state], PFWEB_TCP_STATES[state.dst.state])
+        elif state.proto == socket.IPPROTO_UDP:
+            state_desc = "{}:{}".format(PFWEB_UDP_STATES[state.src.state], PFWEB_UDP_STATES[state.dst.state])
+        else:
+            state_desc = "{}:{}".format(PFWEB_OTHER_STATES[state.src.state], PFWEB_OTHER_STATES[state.dst.state])
+
+        state_struct = {
+            'ifname': state.ifname,
+            'proto': PFWEB_IPPROTO[state.proto],
+            'src': src_line,
+            'dst': dst_line,
+            'state': state_desc,
+            'packets': "{} / {}".format(sizeof_fmt(state.packets[0], num_type='int'), sizeof_fmt(state.packets[1], num_type='int')),
+            'bytes': "{} / {}".format(sizeof_fmt(state.bytes[0]), sizeof_fmt(state.bytes[1])),
+            'expires': timedelta(seconds=state.expire)
+        }
+        states.append(state_struct)
+
+    return render_template('states.html', logged_in=flask_login.current_user.get_id(), status_tab='active', states=states)
+
 @app.errorhandler(BadRequestError)
 @flask_login.login_required
 def bad_request(error):
@@ -770,17 +890,26 @@ def table_in_use(pfilter, table):
     else:
         return True
 
-def sizeof_fmt(num, suffix='B'):
+def sizeof_fmt(num, suffix='B', num_type='data'):
     """
     Convert bytes into a human readable format
 
     Straight rip from stackoverflow
     """
-    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
-        if abs(num) < 1024.0:
-            return "%3.1f %s%s" % (num, unit, suffix)
-        num /= 1024.0
-    return "%.1f %s%s" % (num, 'Yi', suffix)
+    if num_type == 'data':
+        for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+            if abs(num) < 1024.0:
+                return "%3.1f %s%s" % (num, unit, suffix)
+            num /= 1024.0
+        return "%.1f %s%s" % (num, 'Yi', suffix)
+    else:
+        if abs(num) < 1000:
+            return num
+        for unit in ['', 'K', 'M', 'B']:
+            if abs(num) < 1000.0:
+                return "%3.1f %s" % (num, unit)
+            num /= 1000.0
+        return "%.1f %s" % (num, 'T')
 
 def save_pfconf(pfilter):
     """Save the pf.conf file"""

@@ -4,8 +4,8 @@ body {
 }
 
 .logout {
-  color: #BDBDBD;
-  padding-left: 10px;
+    color: #BDBDBD;
+    padding-left: 10px;
 }
 
 .logout-glyph:hover span {
@@ -26,14 +26,14 @@ body {
 }
 
 .glyph-link {
-  cursor: pointer;
-  padding-left: 2px;
-  padding-right: 2px;
-  color: #337ab7;
+    cursor: pointer;
+    padding-left: 2px;
+    padding-right: 2px;
+    color: #337ab7;
 }
 
 .text-danger {
-  color: #a94442;
+    color: #a94442;
 }
 
 .form-control {
@@ -82,6 +82,19 @@ body {
 }
 
 .cell-right {
-  text-align: right;
-  padding-right: 20px !important;
+    text-align: right;
+    padding-right: 20px !important;
+}
+
+.modal-header-danger {
+    color: #fff;
+    padding:9px 15px;
+    border-bottom:1px solid #eee;
+    background-color: #d9534f;
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-top-right-radius: 5px;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-topright: 5px;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
 }

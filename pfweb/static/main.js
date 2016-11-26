@@ -22,19 +22,11 @@ function remove_rule(rule) {
 }
 
 function remove_table(table) {
-	/*resp = confirm("Are you sure you wish to delete this table?");
-
-	if(resp == false) {
-		return
-	}*/
-
 	$("#table_" + table).prop("checked", true);
 
 	$("#delete_tables_submit").trigger("click");
 
 	$("#table_" + table).prop("checked", false);
-
-	//location.href = "/firewall/tables/remove/" + table
 }
 
 function add_address() {
@@ -150,4 +142,35 @@ function load_edit_rules_page(){
 	toggle_fields();
 	addr_type('src', $('#src_addr_type').val());
 	addr_type('dst', $('#dst_addr_type').val());
+}
+
+function remove_state(item) {
+	var data = $(item).data('entry').split('|');
+
+	resp = confirm("Are you sure you wish to delete this state?\n" + data[0] + " -> " + data[1]);
+
+	if(resp == false) {
+		return
+	}
+
+	var data = $(item).data('entry').split('|');
+
+	$.ajax('/status/states', 
+		{
+			type: 'post',
+			data: {
+				action: 'remove',
+				src: data[0],
+				dst: data[1]
+			},
+			success: function() {
+				$(item).parents('tr').remove();
+			},
+			error: function(e) {
+				$('#modal_alert .modal-title').text("Bad Request");
+				$('#modal_alert .modal-body').text(e.responseJSON.message);
+				$('#modal_alert').modal()
+			}
+		}
+	);
 }
