@@ -26,16 +26,18 @@ class Config():
         """Store config settings into the class"""
         _config_parse = self._read_file()
 
-        _required = ['secret_key', 'salt', 'username', 'password']
-        _optional = []
+        _required = { 'main': ['secret_key', 'salt', 'username', 'password'] }
+        _optional = { 'global': ['state_policy'] }
 
-        for param in _required:
-            setattr(self, param, _config_parse.get('main', param))
+        for section, params in _required.iteritems():
+            for param in params:
+                setattr(self, param, _config_parse.get(section, param))
 
-        for param in _optional:
+        for section, params in _optional.iteritems():
             try:
-                setattr(self, param, _config_parse.get('main', param))
-            except ConfigParser.NoOptionError:
+                for param in params:
+                    setattr(self, param, _config_parse.get(section, param))
+            except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
                 pass
 
     def create_user(self, username, password):

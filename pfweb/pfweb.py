@@ -1005,6 +1005,19 @@ def sizeof_fmt(num, suffix='B', num_type='data'):
 def save_pfconf(pfilter):
     """Save the pf.conf file"""
 
+    # Supported global options from config file
+
+    # state-policy
+    global_options = list()
+    try:
+        valid_state_policy = ['if-bound', 'floating']
+        if settings.state_policy not in valid_state_policy:
+            raise ValueError("Invalid state-policy setting '{}'".format(settings.state_policy))
+
+        global_options.append("set state-policy {}".format(settings.state_policy))
+    except AttributeError:
+        pass
+
     # Gather the tables
     tables = pfilter.get_tables()
     tables_pfconf = list()
@@ -1015,7 +1028,7 @@ def save_pfconf(pfilter):
     # Use pfctl to get the rules
     pfctl_rules = subprocess.check_output(["/sbin/pfctl", "-s", "rules"])
 
-    pfconf_text = "{}\n{}".format("\n".join(tables_pfconf), pfctl_rules)
+    pfconf_text = "{}\n\n{}\n\n{}".format("\n".join(global_options), "\n".join(tables_pfconf), pfctl_rules)
 
     with open("/tmp/pf.conf.pfweb", 'w+') as pfconf_f:
         pfconf_f.write(pfconf_text)
