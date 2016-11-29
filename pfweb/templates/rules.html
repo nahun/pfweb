@@ -109,6 +109,9 @@ $("[id^=moveR_").click(function(event) {
     // Save target rule position
     var anchor_row = $(this).parents("tr:first");
 
+    // Store if any rows are selected
+    var rows_selected = false
+
     if(event.ctrlKey) {
         $($('#rulestable > tbody > tr').get().reverse()).each(function() {
             // Get ID of the row
@@ -120,6 +123,7 @@ $("[id^=moveR_").click(function(event) {
                     $('#rule_' + ruleid).prop('checked', false);
                     $(this).removeClass('selected');
                     $('#rule_row_' + ruleid).addClass("highlight");
+                    rows_selected = true
                 }
             }
         });
@@ -135,6 +139,7 @@ $("[id^=moveR_").click(function(event) {
                     $('#rule_' + ruleid).prop('checked', false);
                     $(this).removeClass('selected');
                     $('#rule_row_' + ruleid).addClass("highlight");
+                    rows_selected = true
                 }
             }
         });
@@ -145,7 +150,9 @@ $("[id^=moveR_").click(function(event) {
     $('#rulestable tr').removeClass("highlight");
 
     // Enable the save button
-    $("#button_save_order").prop("disabled", false);
+    if(rows_selected) {
+        $("#button_save_order").prop("disabled", false);
+    }
 }).mouseover(function(e) {
     var ruleselected = false;
 
