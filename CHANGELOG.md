@@ -1,7 +1,7 @@
 # Changelog
 
 ## [0.1.0dev3] - 2016-11-29
-[Full Changelog](https://github.com/nahun/pfweb/compare/0.1.0.dev2...0.1.0dev3)
+[Full Changelog](https://github.com/nahun/pfweb/compare/0.1.0.dev2...v0.1.0dev3)
 
 ### Added
 - Support for rdr-to and nat-to rules
@@ -35,6 +35,6 @@
 ## [0.1.0dev1] - 2016-11-21
 - Initial Release
 
-[0.1.0dev3]: https://github.com/nahun/pfweb/tree/0.1.0dev3
+[0.1.0dev3]: https://github.com/nahun/pfweb/tree/v0.1.0dev3
 [0.1.0dev2]: https://github.com/nahun/pfweb/tree/0.1.0.dev2
 [0.1.0dev1]: https://github.com/nahun/pfweb/commit/b6f7396
