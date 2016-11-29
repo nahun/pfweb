@@ -24,6 +24,7 @@
                             <th>Port</th>
                             <th>Destination</th>
                             <th>Port</th>
+                            <th>NAT / RDR</th>
                             <th>Description</th>
                             <th>Actions</th>
                         </tr>
@@ -33,7 +34,7 @@
                         <tr id="rule_row_{{ rule.id }}">
                             <td><input type="checkbox" id="rule_{{ rule.id }}" name="rule_{{ rule.id }}" value="{{ rule.id }}" /></td>
                             <td width="70px">
-                                <span title="Traffic is {{ rule.action }}ed" class="glyphicon glyphicon-{% if rule.action == 'pass' %}ok{% else %}remove{% endif %} rule-{{ rule.action }}"></span>
+                                <span title="Traffic is {{ rule.action }}ed" class="glyphicon glyphicon-{% if rule.action == 'pass' %}ok{% elif rule.action == 'match' %}flag{% else %}remove{% endif %} rule-{{ rule.action }}"></span>
                                 
                                 {% if rule.log %}
                                 <span title="Traffic is logged" class="glyphicon glyphicon-tasks"></span>
@@ -44,11 +45,12 @@
                                 {% endif %}
                             </td>
                             <td>{{ rule.iface }}</td>
-                            <td>{{rule.af }} {{ rule.proto if rule.proto != '*' }}</td>
-                            <td>{% if rule.src_addr_type == 'table' %}&lt;{{ rule.src_addr }}&gt;{% else %}{{ rule.src_addr }}{% endif %}</td>
+                            <td>{{ "{} ".format(rule.af) if rule.af != "*" or rule.proto == '*' }}{{ rule.proto if rule.proto != '*' }}</td>
+                            <td>{% if rule.src_addr_type == 'table' %}{{ "<{}>".format(rule.src_addr) }}{% else %}{{ rule.src_addr }}{% endif %}</td>
                             <td>{{ port_ops[rule.src_port_op][2].format(rule.src_port) }}</td>
-                            <td>{% if rule.dst_addr_type == 'table' %}&lt;{{ rule.dst_addr }}&gt;{% else %}{{ rule.dst_addr }}{% endif %}</td>
+                            <td>{% if rule.dst_addr_type == 'table' %}{{ "<{}>".format(rule.dst_addr) }}{% else %}{{ rule.dst_addr }}{% endif %}</td>
                             <td>{{ port_ops[rule.dst_port_op][2].format(rule.dst_port) }}</td>
+                            <td>{% if rule.trans_type %}<span class="glyphicon glyphicon-{% if rule.trans_type == 'NAT' %}resize-horizontal{% elif rule.trans_type == 'RDR' %}circle-arrow-right{% endif %}" title="{{ rule.trans_type }}"></span> {{ "<{}>".format(rule.trans_addr) if rule.trans_addr_type == 'table' else rule.trans_addr }}{% if rule.trans_type == 'RDR' and rule.trans_port[0] %} {{ port_ops[rule.trans_port_op][2].format(rule.trans_port) }}{% endif %}{% endif %}</td>
                             <td>{{ rule.label }}</td>
                             <td align="right">
                                 <span class="glyphicon glyphicon-bookmark glyph-link" title="Move checked rules above this one. Ctrl+Click to move selected rules below." id="moveR_{{ rule.id }}"></span>

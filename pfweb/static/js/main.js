@@ -68,7 +68,11 @@ function table_remove_addr(id) {
 function toggle_fields() {
 	// Modify protocol options based on address family
 	if($('#af').val() == '*') {
+		// Hide ICMP and translation
 		$('#icmp_option').hide();
+		$('#translation_panel').hide();
+		$('#trans_type').val('none');
+
 		if($('#proto').val() == 'ICMP') {
 			$('#proto').val('*');
 		}
@@ -82,13 +86,33 @@ function toggle_fields() {
 		});
 	}
 	else {
+		// Only show translation when IPv4
+		if($('#af').val() == 'IPv6') {
+			$('#translation_panel').hide();
+			$('#trans_type').val('none');
+		}
+		else {
+			$('#translation_panel').show();
+		}
+		// Show ICMP and addrmask for both IPv4 and IPv6
 		$('#icmp_option').show();
 		$('#form_src_addrmask_type').prop('disabled', false);
 		$('#form_dst_addrmask_type').prop('disabled', false);
 	}
 
+	// RDR can only be used with TCP or UDP
+	if($('#proto').val() == "TCP" || $('#proto').val() == "UDP") {
+		$('#trans_type_rdr').prop('disabled', false);
+	}
+	else {
+		if($('#trans_type').val() == 'RDR') {
+			$('#trans_type').val('none');
+		}
+		$('#trans_type_rdr').prop('disabled', true);
+	}
+
 	if($('#proto').val() != "ICMP" || $('#af').val() == '*') {
-		// Hide ICMP Type form when protocol is ICMP or the AF is Any
+		// Hide ICMP Type form when protocol isn't ICMP or the AF is Any
 		$('#form_icmptype').hide();
 
 		// The ports must be hidden when ICMP is chosen even with AF is Any
@@ -126,11 +150,18 @@ function toggle_fields() {
 function addr_type(type, value) {
 	if(value == 'addrmask') {
 		$("#" + type + "_addr_table").hide();
+		$("#" + type + "_addr_iface").hide();
 		$("#form_" + type + "_addrmask").show();
 	}
 	else if(value == 'table') {
 		$("#form_" + type + "_addrmask").hide();
+		$("#" + type + "_addr_iface").hide();
 		$("#" + type + "_addr_table").show();
+	}
+	else if(value == 'dynif' && type == 'trans') {
+		$("#form_" + type + "_addrmask").hide();
+		$("#" + type + "_addr_table").hide();
+		$("#" + type + "_addr_iface").show();
 	}
 	if(value == 'any') {
 		$("#" + type + "_addr_table").hide();
@@ -138,10 +169,29 @@ function addr_type(type, value) {
 	}
 }
 
-function load_edit_rules_page(){
+function trans_form_type(value) {
+	/* Show or hide fields when selecting different translation types */
+	if(value == 'NAT') {
+		$("#form_trans_port").hide()
+		$("#form_trans_addr_type_dynif").prop('disabled', false);
+	}
+	else if(value == 'RDR'){
+		$("#form_trans_port").show()
+		if($('#trans_addr_type').val() == 'dynif') {
+			$("#trans_addr_type").val('addrmask');
+			addr_type('trans', 'addrmask');
+		}
+		$("#form_trans_addr_type_dynif").prop('disabled', true);
+	}
+}
+
+function load_edit_rules_page() {
+	/* All actions needed when loading the edit rules page */
 	toggle_fields();
 	addr_type('src', $('#src_addr_type').val());
 	addr_type('dst', $('#dst_addr_type').val());
+	addr_type('trans', $('#trans_addr_type').val());
+	trans_form_type($('#trans_type').val());
 }
 
 function remove_state(item) {

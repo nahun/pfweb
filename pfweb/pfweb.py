@@ -277,7 +277,7 @@ def edit_rule(rule_id=None):
         for item, val in request.form.iteritems():
             fields[item] = val
 
-        # Parse sure input into pf.PFRule object
+        # Parse user input into pf.PFRule object
         rule = translate_rule(packetfilter, id=rule_id, **fields)
 
         if not isinstance(rule, pf.PFRule):
@@ -336,7 +336,6 @@ def tables(table_name=None):
     remove_error = list()
     # Remove multiple tables
     if request.method == 'POST':
-        print request.form
         if 'delete_tables' in request.form and request.form['delete_tables'] == "true":
             # Create list of tables to remove
             remove_list = list()
@@ -529,7 +528,6 @@ def get_rules(pfilter):
     
     # Parse each rule into human readable values
     for rule in ruleset.rules:
-        #print rule
         new = get_rule(rule)
 
         new['id'] = count
@@ -551,6 +549,8 @@ def get_rule(rule):
             new['action'] = "reject"
         else:
             new['action'] = "block"
+    elif rule.action == pf.PF_MATCH:
+        new['action'] = "match"
     else:
         new['action'] = "else"
 
@@ -596,6 +596,22 @@ def get_rule(rule):
 
     # Destination
     (new['dst_addr'], new['dst_addr_type'], new['dst_port_op'], new['dst_port']) = get_addr_port(rule.dst)
+
+    # NAT
+    new['trans_type'] = False
+    if rule.nat.addr.type != pf.PF_ADDR_NONE and rule.nat.id == pf.PF_POOL_NAT:
+        (new['trans_addr'], new['trans_addr_type'], new['trans_port_op'], new['trans_port']) = get_addr_port(rule.nat)
+        new['trans_type'] = 'NAT'
+    # RDR
+    elif rule.rdr.addr.type != pf.PF_ADDR_NONE and rule.rdr.id == pf.PF_POOL_RDR:
+        (new['trans_addr'], new['trans_addr_type'], new['trans_port_op'], new['trans_port']) = get_addr_port(rule.rdr)
+        new['trans_type'] = 'RDR'
+
+    if new.get('trans_port'):
+        if (new['trans_port'][0] != 0 and new['trans_port'][1] == 0) or new['trans_port'][0] == new['trans_port'][1]:
+            new['trans_port_op'] = pf.PF_OP_EQ
+        else:
+            new['trans_port_op'] = pf.PF_OP_RRG
 
     # Label
     new['label'] = rule.label
@@ -644,8 +660,19 @@ def get_addr_port(rule_addr):
     elif rule_addr.addr.type == pf.PF_ADDR_TABLE:
         addr = rule_addr.addr.tblname
         addr_type = 'table'
+    elif rule_addr.addr.type == pf.PF_ADDR_DYNIFTL:
+        addr_type = 'dynif'
+        addr = rule_addr.addr.ifname
 
-    return (addr, addr_type, rule_addr.port.op, rule_addr.port.num)
+    # PFPool objects use proxy_port
+    try:
+        port_op = rule_addr.port.op
+        port_num = rule_addr.port.num
+    except AttributeError:
+        port_op = rule_addr.proxy_port.op
+        port_num = rule_addr.proxy_port.num
+
+    return (addr, addr_type, port_op, port_num)
 
 def ntoc(mask, af):
     """Convert netmask to prefix bit length"""
@@ -689,6 +716,8 @@ def translate_rule(pfilter, **fields):
     elif fields['action'] == 'reject':
         rule.action = pf.PF_DROP
         rule.rule_flag = pf.PFRULE_RETURN | 0
+    elif fields['action'] == 'match':
+        rule.action = pf.PF_MATCH
     else:
         return "Action is not recognized"
 
@@ -757,6 +786,23 @@ def translate_rule(pfilter, **fields):
     # Destination Address Rule
     rule.dst = translate_addr_rule(fields['dst_addr'], fields['dst_addr_type'], fields['dst_addr_table'], fields['dst_port_op'], fields['dst_port_from'], fields['dst_port_to'], rule.proto, rule.af)
 
+    # Set any translation used NAT or RDR
+    if fields.get('trans_type', 'none') != 'none' and rule.af == socket.AF_INET:
+        pool = translate_pool_rule(fields['trans_type'], fields['trans_addr'], fields['trans_addr_type'], fields['trans_addr_table'], fields['trans_port_from'], fields['trans_port_to'], rule.proto, fields['trans_addr_iface'])
+        
+        if fields['trans_type'].lower() == 'rdr':
+            rule.rdr = pool
+            rule.nat.addr.type = pf.PF_ADDR_NONE
+        else:
+            rule.nat = pool
+            rule.rdr.addr.type = pf.PF_ADDR_NONE
+    elif fields.get('trans_type', 'none') != 'none' and rule.af != socket.AF_INET:
+        return "Translation can only be used with IPv4"
+    else:
+        # Translation is disabled
+        rule.rdr.addr.type = pf.PF_ADDR_NONE
+        rule.nat.addr.type = pf.PF_ADDR_NONE
+
     # Log checkbox
     if 'log' in fields:
         rule.log = pf.PF_LOG
@@ -785,16 +831,7 @@ def translate_addr_rule(addr, addr_type, addr_table, port_op, port_from, port_to
     pfaddr = False
     if addr_type == "addrmask" and af != socket.AF_UNSPEC:
         # Validate IP address
-        addr_mask = addr.split("/")
-        try:
-            socket.inet_pton(af, addr_mask[0])
-        except socket.error:
-            raise BadRequestError("Invalid IP address")
-
-        if len(addr_mask) == 2 and int(addr_mask[1]) and (int(addr_mask[1]) < 0 or int(addr_mask[1]) > 128):
-            raise BadRequestError("Invalid CIDR prefix")
-
-        pfaddr = pf.PFAddr(addr)
+        pfaddr = translate_addrmask(af, addr)
     elif addr_type == "table":
         # Set addr to a table
         pfaddr = pf.PFAddr("<" + str(addr_table) + ">")
@@ -835,6 +872,60 @@ def translate_addr_rule(addr, addr_type, addr_table, port_op, port_from, port_to
         rule_addr.port = port
 
     return rule_addr
+
+def translate_pool_rule(trans_type, addr, addr_type, addr_table, port_from, port_to, proto, addr_iface):
+    """Parses fields given in the pfweb form to a pf.PFPool object"""
+    pfaddr = False
+    if addr_type == 'addrmask':
+        pfaddr = translate_addrmask(socket.AF_INET, addr)
+    elif addr_type == 'table':
+        pfaddr = pf.PFAddr("<" + str(addr_table) + ">")
+    elif addr_type == 'dynif':
+        if trans_type.lower() == 'rdr':
+            return "Cannot RDR to an interface"
+        # Set PFAddr to interface and IPv4
+        pfaddr = pf.PFAddr("({})".format(addr_iface), socket.AF_INET)
+
+    pool_id = pf.PF_POOL_NAT
+    port = False
+    if trans_type.lower() == 'rdr' and (proto == socket.IPPROTO_TCP or proto == socket.IPPROTO_UDP):
+        # Set ports to 0 if they were left blank
+        if port_from == '':
+            port_from = 0
+            port_to = 0
+        if port_to == '':
+            port_to = 0
+
+        pool_id = pf.PF_POOL_RDR
+        try:
+            port = pf.PFPort((int(port_from), int(port_to)))
+        except ValueError:
+            # The user didn't give us a valid number
+            return "Invalid port number"
+    elif trans_type.lower() == 'rdr' and not (proto == socket.IPPROTO_TCP or proto == socket.IPPROTO_UDP):
+        return "TCP or UDP must be used for RDR"
+
+    pool = pf.PFPool(pool_id, pfaddr)
+    if port:
+        pool.proxy_port = port
+
+    return pool
+
+def translate_addrmask(af, addr):
+    """Validate IP address"""
+    addr_mask = addr.split("/")
+    try:
+        socket.inet_pton(af, addr_mask[0])
+    except socket.error:
+        raise BadRequestError("Invalid IP address")
+
+    # Test v4 or v6 mask
+    max_cidr_prefix = 32 if af == socket.AF_INET else 128
+
+    if len(addr_mask) == 2 and int(addr_mask[1]) and (int(addr_mask[1]) < 0 or int(addr_mask[1]) > max_cidr_prefix):
+        raise BadRequestError("Invalid CIDR prefix")
+
+    return pf.PFAddr(addr)
 
 def get_tables(pfilter):
     """Return a list of tables for rendering a template"""
