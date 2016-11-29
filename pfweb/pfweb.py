@@ -782,9 +782,9 @@ def translate_rule(pfilter, **fields):
             return "Must specifiy IPv4 or IPv6 when using ICMP"
 
     # Source Address Rule
-    rule.src = translate_addr_rule(fields['src_addr'], fields['src_addr_type'], fields['src_addr_table'], fields['src_port_op'], fields['src_port_from'], fields['src_port_to'], rule.proto, rule.af)
+    rule.src = translate_addr_rule(fields['src_addr'], fields['src_addr_type'], fields['src_addr_table'], fields['src_port_op'], fields.get('src_port_from', 0), fields.get('src_port_to', 0), rule.proto, rule.af)
     # Destination Address Rule
-    rule.dst = translate_addr_rule(fields['dst_addr'], fields['dst_addr_type'], fields['dst_addr_table'], fields['dst_port_op'], fields['dst_port_from'], fields['dst_port_to'], rule.proto, rule.af)
+    rule.dst = translate_addr_rule(fields['dst_addr'], fields['dst_addr_type'], fields['dst_addr_table'], fields['dst_port_op'], fields.get('dst_port_from', 0), fields.get('dst_port_to', 0), rule.proto, rule.af)
 
     # Set any translation used NAT or RDR
     if fields.get('trans_type', 'none') != 'none' and rule.af == socket.AF_INET:

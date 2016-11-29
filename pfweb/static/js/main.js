@@ -147,6 +147,23 @@ function toggle_fields() {
 	$('#form_icmptype').show();
 }
 
+function port_op(type, port_op) {
+	/* Modify port from and to based on port op */
+
+	if(port_op.indexOf('Range') !== -1) {
+		$("#" + type + "_port_from").prop('disabled', false);
+		$("#" + type + "_port_to").prop('disabled', false);
+	}
+	else if(port_op == 'Any') {
+		$("#" + type + "_port_from").prop('disabled', true);
+		$("#" + type + "_port_to").prop('disabled', true);
+	}
+	else {
+		$("#" + type + "_port_from").prop('disabled', false);
+		$("#" + type + "_port_to").prop('disabled', true);
+	}
+}
+
 function addr_type(type, value) {
 	if(value == 'addrmask') {
 		$("#" + type + "_addr_table").hide();
@@ -188,8 +205,12 @@ function trans_form_type(value) {
 function load_edit_rules_page() {
 	/* All actions needed when loading the edit rules page */
 	toggle_fields();
-	addr_type('src', $('#src_addr_type').val());
-	addr_type('dst', $('#dst_addr_type').val());
+
+	$.each(['src', 'dst'], function(i, val) {
+		addr_type(val, $('#' + val + '_addr_type').val());
+		port_op(val, $('#' + val + '_port_op option:selected').text());
+	});
+
 	addr_type('trans', $('#trans_addr_type').val());
 	trans_form_type($('#trans_type').val());
 }

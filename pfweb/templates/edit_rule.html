@@ -115,7 +115,7 @@
                     <div class="form-group" id="form_src_port">
                         <label class="col-sm-2 control-label">Source Port</label>
                         <div class="col-sm-2">
-                            <select class="form-control" id="src_port_op" name="src_port_op">
+                            <select class="form-control" id="src_port_op" name="src_port_op" onchange="port_op('src', $('option:selected', this).text());">
                             {% for type, value in port_ops|dictsort(by='value') %}
                                 <option value="{{ type }}"{% if rule.src_port_op == type %} selected{% endif %}>{{ value[1] }}</option>
                             {% endfor %}
@@ -168,7 +168,7 @@
                     <div class="form-group" id="form_dst_port">
                         <label class="col-sm-2 control-label">Destination Port</label>
                         <div class="col-sm-2">
-                            <select class="form-control" id="dst_port_op" name="dst_port_op">
+                            <select class="form-control" id="dst_port_op" name="dst_port_op" onchange="port_op('dst', $('option:selected', this).text());">
                             {% for type, value in port_ops|dictsort(by='value') %}
                                 <option value="{{ type }}"{% if rule.dst_port_op == type %} selected{% endif %}>{{ value[1] }}</option>
                             {% endfor %}
