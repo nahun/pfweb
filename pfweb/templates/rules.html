@@ -44,13 +44,13 @@
                                 <span title="Stop matching rules" class="glyphicon glyphicon-alert"></span>
                                 {% endif %}
                             </td>
-                            <td>{{ rule.iface }}</td>
+                            <td><span class="glyphicon glyphicon-{% if rule.direction == 'in' %}triangle-right{% elif rule.direction == 'out' %}triangle-left{% elif rule.direction == 'both' %}resize-horizontal{% endif %}" title="Direction: {{ rule.direction.capitalize() }}"></span> {{ rule.iface }}</td>
                             <td>{{ "{} ".format(rule.af) if rule.af != "*" or rule.proto == '*' }}{{ rule.proto if rule.proto != '*' }}</td>
                             <td>{% if rule.src_addr_type == 'table' %}{{ "<{}>".format(rule.src_addr) }}{% else %}{{ rule.src_addr }}{% endif %}</td>
                             <td>{{ port_ops[rule.src_port_op][2].format(rule.src_port) }}</td>
                             <td>{% if rule.dst_addr_type == 'table' %}{{ "<{}>".format(rule.dst_addr) }}{% else %}{{ rule.dst_addr }}{% endif %}</td>
                             <td>{{ port_ops[rule.dst_port_op][2].format(rule.dst_port) }}</td>
-                            <td>{% if rule.trans_type %}<span class="glyphicon glyphicon-{% if rule.trans_type == 'NAT' %}resize-horizontal{% elif rule.trans_type == 'RDR' %}circle-arrow-right{% endif %}" title="{{ rule.trans_type }}"></span> {{ "<{}>".format(rule.trans_addr) if rule.trans_addr_type == 'table' else rule.trans_addr }}{% if rule.trans_type == 'RDR' and rule.trans_port[0] %} {{ port_ops[rule.trans_port_op][2].format(rule.trans_port) }}{% endif %}{% endif %}</td>
+                            <td>{% if rule.trans_type %}<span class="glyphicon glyphicon-{% if rule.trans_type == 'NAT' %}asterisk{% elif rule.trans_type == 'RDR' %}circle-arrow-right{% endif %}" title="{{ rule.trans_type }}"></span> {{ "<{}>".format(rule.trans_addr) if rule.trans_addr_type == 'table' else rule.trans_addr }}{% if rule.trans_type == 'RDR' and rule.trans_port[0] %} {{ port_ops[rule.trans_port_op][2].format(rule.trans_port) }}{% endif %}{% endif %}</td>
                             <td>{{ rule.label }}</td>
                             <td align="right">
                                 <span class="glyphicon glyphicon-bookmark glyph-link" title="Move checked rules above this one. Ctrl+Click to move selected rules below." id="moveR_{{ rule.id }}"></span>
