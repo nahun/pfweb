@@ -4,7 +4,7 @@ import json
 import platform, subprocess, time, shutil
 from datetime import timedelta
 
-from flask import Flask, render_template, redirect, url_for, request, jsonify
+from flask import Flask, session, render_template, redirect, url_for, request, jsonify
 import flask_login
 
 from config import Config
@@ -17,9 +17,12 @@ settings.get_settings()
 # Setup Flask
 app = Flask(__name__)
 app.secret_key = settings.secret_key
+# Set session lifetime
+app.permanent_session_lifetime = timedelta(minutes=240)
 
 # Setup Login Manager extension
 login_manager = flask_login.LoginManager()
+login_manager.session_protection = "strong"
 login_manager.init_app(app)
 
 # Load packet filter to be used in views
@@ -46,6 +49,13 @@ def user_loader(username):
 def unauthorized_handler():
     """Redirect to the login page when not authenticated"""
     return redirect(url_for('login'))
+
+@app.before_request
+def before_request():
+    """Operations performed on every request"""
+
+    # Reset session timer
+    session.modified = True
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
