@@ -377,10 +377,16 @@ def edit_table(table_name=None):
         if not isinstance(table_addrs, list):
             raise BadRequestError(table)
 
-        if table_name:
+        if ' ' in str(table_name).strip():
+            raise BadRequestError('Table name cannot contain spaces')
+        elif table_name:
             packetfilter.set_addrs(table_name, *table_addrs)
         else:
-            packetfilter.add_tables(pf.PFTable(request.form['name'], *table_addrs, flags=pf.PFR_TFLAG_PERSIST))
+            if is_blank(request.form.get('name')):
+                raise BadRequestError('Table name cannot be empty')
+            elif ' ' in request.form.get('name').strip():
+                raise BadRequestError('Table name cannot contain spaces')
+            packetfilter.add_tables(pf.PFTable(request.form['name'].strip(), *table_addrs, flags=pf.PFR_TFLAG_PERSIST))
 
         save_pfconf(packetfilter)
 
@@ -1072,6 +1078,12 @@ def save_pfconf(pfilter):
         pfconf_f.write(pfconf_text)
 
     shutil.copyfile("/tmp/pf.conf.pfweb", "/etc/pf.conf")
+
+def is_blank(val):
+    if str(val) == "" or not val:
+        return True
+    else:
+        return False
 
 if __name__ == "__main__":
     app.debug = True
