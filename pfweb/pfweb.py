@@ -792,13 +792,35 @@ def translate_rule(pfilter, **fields):
             return "Must specifiy IPv4 or IPv6 when using ICMP"
 
     # Source Address Rule
-    rule.src = translate_addr_rule(fields['src_addr'], fields['src_addr_type'], fields['src_addr_table'], fields['src_port_op'], fields.get('src_port_from', 0), fields.get('src_port_to', 0), rule.proto, rule.af)
+    rule.src = translate_addr_rule(
+        fields.get('src_addr'),
+        fields.get('src_addr_type'),
+        fields.get('src_addr_table'),
+        fields.get('src_port_op', pf.PF_OP_NONE),
+        fields.get('src_port_from', 0),
+        fields.get('src_port_to', 0),
+        rule.proto, rule.af)
     # Destination Address Rule
-    rule.dst = translate_addr_rule(fields['dst_addr'], fields['dst_addr_type'], fields['dst_addr_table'], fields['dst_port_op'], fields.get('dst_port_from', 0), fields.get('dst_port_to', 0), rule.proto, rule.af)
+    rule.dst = translate_addr_rule(
+        fields.get('dst_addr'),
+        fields.get('dst_addr_type'),
+        fields.get('dst_addr_table'),
+        fields.get('dst_port_op', pf.PF_OP_NONE),
+        fields.get('dst_port_from', 0),
+        fields.get('dst_port_to', 0),
+        rule.proto, rule.af)
 
     # Set any translation used NAT or RDR
     if fields.get('trans_type', 'none') != 'none' and rule.af == socket.AF_INET:
-        pool = translate_pool_rule(fields['trans_type'], fields['trans_addr'], fields['trans_addr_type'], fields['trans_addr_table'], fields['trans_port_from'], fields['trans_port_to'], rule.proto, fields['trans_addr_iface'])
+        pool = translate_pool_rule(
+            fields.get('trans_type'),
+            fields.get('trans_addr'),
+            fields.get('trans_addr_type'),
+            fields.get('trans_addr_table'),
+            fields.get('trans_port_from'),
+            fields.get('trans_port_to'),
+            rule.proto,
+            fields.get('trans_addr_iface'))
         
         if fields['trans_type'].lower() == 'rdr':
             rule.rdr = pool
@@ -844,6 +866,8 @@ def translate_addr_rule(addr, addr_type, addr_table, port_op, port_from, port_to
         pfaddr = translate_addrmask(af, addr)
     elif addr_type == "table":
         # Set addr to a table
+        if not addr_table:
+            return "Table cannot be empty"
         pfaddr = pf.PFAddr("<" + str(addr_table) + ">")
 
     # Do not set if ANY or proto is ICMP
@@ -889,10 +913,14 @@ def translate_pool_rule(trans_type, addr, addr_type, addr_table, port_from, port
     if addr_type == 'addrmask':
         pfaddr = translate_addrmask(socket.AF_INET, addr)
     elif addr_type == 'table':
+        if not addr_table:
+            return "Table cannot be empty"
         pfaddr = pf.PFAddr("<" + str(addr_table) + ">")
     elif addr_type == 'dynif':
         if trans_type.lower() == 'rdr':
             return "Cannot RDR to an interface"
+        if not addr_iface:
+            return "Interface cannot be empty"
         # Set PFAddr to interface and IPv4
         pfaddr = pf.PFAddr("({})".format(addr_iface), socket.AF_INET)
 
