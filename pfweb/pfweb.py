@@ -534,7 +534,7 @@ def states():
 @flask_login.login_required
 def bad_request(error):
     """Show HTTP 400 page when BadRequestError is raised"""
-    return render_template('error.html', msg=error.message), 400
+    return render_template('error.html', logged_in=flask_login.current_user.get_id(), msg=error.message), 400
 
 def get_rules(pfilter):
     """Return list of rules for template"""
