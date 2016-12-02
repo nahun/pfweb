@@ -117,3 +117,7 @@ body {
 .panel-heading a.collapsed:after {
     content:"\e080";
 }
+
+.cursor-help {
+    cursor: help;
+}

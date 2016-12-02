@@ -632,6 +632,13 @@ def get_rule(rule):
         else:
             new['trans_port_op'] = pf.PF_OP_RRG
 
+    # Stats
+    new['evaluations'] = sizeof_fmt(int(rule.evaluations), num_type='int')
+    new['packets'] = sizeof_fmt(int(sum(rule.packets)), num_type='int')
+    new['bytes'] = sizeof_fmt(int(sum(rule.bytes)))
+    new['states'] = sizeof_fmt(int(rule.states_cur), num_type='int')
+    new['states_creations'] = sizeof_fmt(int(rule.states_tot), num_type='int')
+
     # Label
     new['label'] = rule.label
 

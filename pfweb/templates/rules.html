@@ -44,7 +44,10 @@
                                 <span title="Stop matching rules" class="glyphicon glyphicon-alert"></span>
                                 {% endif %}
                             </td>
-                            <td><span class="glyphicon glyphicon-{% if rule.direction == 'in' %}triangle-right{% elif rule.direction == 'out' %}triangle-left{% elif rule.direction == 'both' %}resize-horizontal{% endif %}" title="Direction: {{ rule.direction.capitalize() }}"></span> {{ rule.iface }}</td>
+                            <td>
+                                <span class="glyphicon glyphicon-{% if rule.direction == 'in' %}triangle-right{% elif rule.direction == 'out' %}triangle-left{% elif rule.direction == 'both' %}resize-horizontal{% endif %}" title="Direction: {{ rule.direction.capitalize() }}"></span>
+                                <span data-toggle="popover" data-trigger="hover focus" data-title="States Details" data-content="{{ "Evaluations: {}<br />Packets: {}<br />Bytes: {}<br />States: {}<br />State Creations: {}".format(rule.evaluations, rule.packets, rule.bytes, rule.states, rule.states_creations) }}" data-html="true" class="text-info cursor-help">{{ rule.iface }}</span>
+                            </td>
                             <td>{{ "{} ".format(rule.af) if rule.af != "*" or rule.proto == '*' }}{{ rule.proto if rule.proto != '*' }}</td>
                             <td>{% if rule.src_addr_type == 'table' %}{{ "<{}>".format(rule.src_addr) }}{% else %}{{ rule.src_addr }}{% endif %}</td>
                             <td>{{ port_ops[rule.src_port_op][2].format(rule.src_port) }}</td>
@@ -185,6 +188,10 @@ $("#rule_list_form").submit(function(event) {
         // Do not submit form
         return false
     }
+});
+
+$(function () {
+  $('[data-toggle="popover"]').popover()
 });
 </script>
 {% endblock %}
