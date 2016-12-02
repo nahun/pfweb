@@ -165,7 +165,10 @@ def dash():
                     if_info_dict['ipv6'].add(line[1])
                 elif line[0] == 'media:':
                     # Get speed and duplex
-                    if_info_dict['media'] = "{} {}".format(line[3].strip("("), line[4].strip(")").split(",")[0])
+                    if line[2] == 'autoselect':
+                        if_info_dict['media'] = "{} {}".format(line[3].strip("("), line[4].strip(")").split(",")[0])
+                    else:
+                        if_info_dict['media'] = "{} {}".format(line[2], line[3].split(",")[0])
                 elif line[0] == 'status:':
                     # Show whether interface is up or down
                     if line[1] == 'active':
