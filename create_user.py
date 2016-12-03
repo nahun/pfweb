@@ -12,7 +12,18 @@ config = Config()
 
 username = ""
 while True:
-	username = raw_input('Enter username: ' + username)
+	prompt = 'Enter username: '
+	if username != "":
+		prompt = 'Enter username [{}]: '.format(username)
+
+	username_input = raw_input(prompt)
+	if username_input != "":
+		username = username_input
+
+	if username == "":
+		print "Username cannot be blank"
+		continue
+
 	password1 = getpass('Enter Password: ')
 	password2 = getpass('Confirm Password: ')
 
