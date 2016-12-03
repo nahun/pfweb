@@ -134,8 +134,8 @@ def dash():
                 'name': iface.name,
                 'Rules': iface.rules,
                 'States': iface.states,
-                'Packets In': packets_in,
-                'Packets Out': packets_out,
+                'Packets In': sizeof_fmt(packets_in, num_type='int'),
+                'Packets Out': sizeof_fmt(packets_out, num_type='int'),
                 'Bytes In': sizeof_fmt(bytes_in),
                 'Bytes Out': sizeof_fmt(bytes_out)
             }
@@ -198,10 +198,10 @@ def dash():
         'enabled': pf_status.running,
         'since': timedelta(seconds=pf_status_since),
         'states': pf_status.states,
-        'match': { 'total': pf_status.cnt['match'], 'rate': "{:.1f}".format(pf_status.cnt['match'] / float(pf_status_since)) },
-        'searches': { 'total': pf_status.fcnt['searches'], 'rate': "{:.1f}".format(pf_status.fcnt['searches'] / float(pf_status_since)) },
-        'inserts': { 'total': pf_status.fcnt['inserts'], 'rate': "{:.1f}".format(pf_status.fcnt['inserts'] / float(pf_status_since)) },
-        'removals': { 'total': pf_status.fcnt['removals'], 'rate': "{:.1f}".format(pf_status.fcnt['removals'] / float(pf_status_since)) }
+        'match': { 'total': sizeof_fmt(pf_status.cnt['match'], num_type='int'), 'rate': "{:.1f}".format(pf_status.cnt['match'] / float(pf_status_since)) },
+        'searches': { 'total': sizeof_fmt(pf_status.fcnt['searches'], num_type='int'), 'rate': "{:.1f}".format(pf_status.fcnt['searches'] / float(pf_status_since)) },
+        'inserts': { 'total': sizeof_fmt(pf_status.fcnt['inserts'], num_type='int'), 'rate': "{:.1f}".format(pf_status.fcnt['inserts'] / float(pf_status_since)) },
+        'removals': { 'total': sizeof_fmt(pf_status.fcnt['removals'], num_type='int'), 'rate': "{:.1f}".format(pf_status.fcnt['removals'] / float(pf_status_since)) }
     }
 
     return render_template('dash.html', sys_info=sys_info, pf_info=pf_info, if_stats=ifstats_output, if_info=if_info, logged_in=flask_login.current_user.get_id(), hometab='active')
@@ -497,7 +497,7 @@ def states():
             src_line += (":{}" if state.af == socket.AF_INET else "[{}]").format(state.nk.port[src])
         # Show and NAT (or rdr) address
         if (state.nk.addr[src] != state.sk.addr[src] or state.nk.port[src] != state.sk.port[src]):
-            src_line += " ({}".format(state.sk.addr[src])
+            src_line += "<br/>({}".format(state.sk.addr[src])
             if str(state.sk.port[src]):
                 src_line += (":{})" if state.af == socket.AF_INET else "[{}])").format(state.sk.port[src])
 
@@ -507,7 +507,7 @@ def states():
             dst_line += (":{}" if state.af == socket.AF_INET else "[{}]").format(state.nk.port[dst])
 
         if (state.nk.addr[dst] != state.sk.addr[dst] or state.nk.port[dst] != state.sk.port[dst]):
-            dst_line += " ({}".format(state.sk.addr[dst])
+            dst_line += "<br/>({}".format(state.sk.addr[dst])
             if str(state.sk.port[dst]):
                 dst_line += (":{})" if state.af == socket.AF_INET else "[{}])").format(state.sk.port[dst])
 
@@ -525,9 +525,9 @@ def states():
             'src': src_line,
             'dst': dst_line,
             'state': state_desc,
-            'packets': "{} / {}".format(sizeof_fmt(state.packets[0], num_type='int'), sizeof_fmt(state.packets[1], num_type='int')),
-            'bytes': "{} / {}".format(sizeof_fmt(state.bytes[0]), sizeof_fmt(state.bytes[1])),
-            'expires': timedelta(seconds=state.expire)
+            'packets': [int(sum(state.packets)) ,"TX: {}<br/>RX: {}".format(sizeof_fmt(state.packets[0], num_type='int'), sizeof_fmt(state.packets[1], num_type='int'))],
+            'bytes': [int(sum(state.bytes)), "TX: {}<br/>RX: {}".format(sizeof_fmt(state.bytes[0]), sizeof_fmt(state.bytes[1]))],
+            'expires': [int(state.expire), timedelta(seconds=state.expire)]
         }
         states.append(state_struct)
 
