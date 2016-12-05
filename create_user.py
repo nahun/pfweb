@@ -1,10 +1,5 @@
 #!/usr/local/bin/python2.7
-
-try:
-	from pfweb.config import Config
-except ImportError:
-	# Try from local directory
-	from config import Config
+from pfweb.config import Config
 
 from getpass import getpass
 

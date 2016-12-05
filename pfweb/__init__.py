@@ -1,1 +1,2 @@
-__all__ = ['pfweb', 'config', 'constants']
+from pfweb.app import app
+__all__ = ['app', 'config', 'constants']

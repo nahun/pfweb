@@ -86,10 +86,10 @@ Then you need to create a FastCGI server file such as *pfweb.fcgi*:
 
 ```python
 from flup.server.fcgi import WSGIServer
-from pfweb.pfweb import app
+import pfweb
 
 if __name__ == '__main__':
-    WSGIServer(app, bindAddress='/var/www/run/pfweb.sock').run()
+    WSGIServer(pfweb.app, bindAddress='/var/www/run/pfweb.sock').run()
 ```
 
 Make sure the socket file path is in httpd's chroot of /var/www otherwise 

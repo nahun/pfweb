@@ -7,8 +7,8 @@ from datetime import timedelta
 from flask import Flask, session, render_template, redirect, url_for, request, jsonify
 import flask_login
 
-from config import Config
-from constants import *
+from pfweb.config import Config
+from pfweb.constants import *
 
 # Get config settings
 settings = Config()
