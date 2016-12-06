@@ -265,7 +265,12 @@ def rules(message=None):
         message = { 'alert': 'success', 'msg': 'Successfully added rule' }
 
     rules = get_rules(packetfilter)
-    return render_template('rules.html', logged_in=flask_login.current_user.get_id(), fw_tab='active', rules=rules, port_ops=PFWEB_PORT_OPS, message=message)
+
+    # Create a dictionary of tables
+    table_list = get_tables(packetfilter)
+    tables = { t['name']: t['addrs'] for t in table_list }
+
+    return render_template('rules.html', logged_in=flask_login.current_user.get_id(), fw_tab='active', rules=rules, tables=tables, port_ops=PFWEB_PORT_OPS, message=message)
 
 @app.route("/firewall/rules/remove/<int:rule_id>")
 @flask_login.login_required

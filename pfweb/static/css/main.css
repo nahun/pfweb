@@ -121,3 +121,7 @@ body {
 .cursor-help {
     cursor: help;
 }
+
+a:hover.no-underline {
+    text-decoration: none;
+}
