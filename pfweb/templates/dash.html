@@ -89,9 +89,9 @@
                                 <th>{{ iface.name }}</th>
                                 <td>{% if iface.status %}<span class="glyphicon glyphicon-arrow-up iface-up"></span>{% else %}<span class="glyphicon glyphicon-arrow-down iface-down"></span>{% endif %}</td>
                                 <td>{{ iface.media }}</td>
-                                <td>
+                                <td class="monospace">
                                     {% for ip in iface.ipv4 %}{{ ip }}<br />{% endfor %}
-                                    {% for ip in iface.ipv6 %}{{ ip }}<br />{% endfor %}
+                                    {% for ip in iface.ipv6|sort(attribute=1) %}{% if ip[1] %}<em data-toggle="popover" data-trigger="hover focus" data-content="Deprecated">{{ ip[0] }}</em>{% else %}{{ ip[0] }}{% endif%}<br />{% endfor %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -111,4 +111,15 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block footer %}
+{{ super() }}
+
+<script type="text/javascript">
+// Enable the popovers
+$(function () {
+  $('[data-toggle="popover"]').popover()
+});
+</script>
 {% endblock %}

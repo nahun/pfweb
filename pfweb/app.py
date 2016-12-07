@@ -160,9 +160,9 @@ def dash():
                 if line[0] == 'inet':
                     # IPv4 addresses
                     if_info_dict['ipv4'].add(line[1])
-                elif line[0] == 'inet6' and not line[1].startswith('fe80') and line[4] != 'deprecated':
+                elif line[0] == 'inet6' and not line[1].startswith('fe80'):
                     # IPv6 addresses. Skip local and deprecated IPs
-                    if_info_dict['ipv6'].add(line[1])
+                    if_info_dict['ipv6'].add((line[1], True if 'deprecated' in line else False))
                 elif line[0] == 'media:':
                     # Get speed and duplex
                     if line[2] == 'autoselect':
