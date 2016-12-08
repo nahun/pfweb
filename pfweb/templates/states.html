@@ -10,8 +10,7 @@
                     <tr>
                         <th>IF</th>
                         <th>Proto</th>
-                        <th>Source</th>
-                        <th>Destination</th>
+                        <th>Source (Original SRC) <span class="glyphicon glyphicon-arrow-right"></span> Destination (Original DST)</th>
                         <th>State</th>
                         <th>Packets</th>
                         <th>Bytes</th>
@@ -23,8 +22,7 @@
                     <tr>
                         <td>{{ state.ifname }}</td>
                         <td>{{ state.proto }}</td>
-                        <td>{{ state.src|safe }}</td>
-                        <td>{{ state.dst|safe }}</td>
+                        <td>{{ state.src }} <span class="glyphicon glyphicon-arrow-right"></span> {{ state.dst }}</td>
                         <td>{{ state.state }}</td>
                         <td data-sort="{{ state.packets[0] }}" class="text-nowrap">{{ state.packets[1]|safe }}</td>
                         <td data-sort="{{ state.bytes[0] }}" class="text-nowrap">{{ state.bytes[1]|safe }}</td>

@@ -502,7 +502,7 @@ def states():
             src_line += (":{}" if state.af == socket.AF_INET else "[{}]").format(state.nk.port[src])
         # Show and NAT (or rdr) address
         if (state.nk.addr[src] != state.sk.addr[src] or state.nk.port[src] != state.sk.port[src]):
-            src_line += "<br/>({}".format(state.sk.addr[src])
+            src_line += " ({}".format(state.sk.addr[src])
             if str(state.sk.port[src]):
                 src_line += (":{})" if state.af == socket.AF_INET else "[{}])").format(state.sk.port[src])
 
@@ -512,7 +512,7 @@ def states():
             dst_line += (":{}" if state.af == socket.AF_INET else "[{}]").format(state.nk.port[dst])
 
         if (state.nk.addr[dst] != state.sk.addr[dst] or state.nk.port[dst] != state.sk.port[dst]):
-            dst_line += "<br/>({}".format(state.sk.addr[dst])
+            dst_line += " ({}".format(state.sk.addr[dst])
             if str(state.sk.port[dst]):
                 dst_line += (":{})" if state.af == socket.AF_INET else "[{}])").format(state.sk.port[dst])
 
