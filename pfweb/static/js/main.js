@@ -180,7 +180,7 @@ function addr_type(type, value) {
 		$("#" + type + "_addr_iface").hide();
 		$("#" + type + "_addr_table").show();
 	}
-	else if(value == 'dynif' && type == 'trans') {
+	else if(value == 'dynif') {
 		$("#form_" + type + "_addrmask").hide();
 		$("#" + type + "_addr_table").hide();
 		$("#" + type + "_addr_iface").show();
@@ -188,6 +188,7 @@ function addr_type(type, value) {
 	if(value == 'any') {
 		$("#" + type + "_addr_table").hide();
 		$("#form_" + type + "_addrmask").hide();
+		$("#" + type + "_addr_iface").hide();
 	}
 }
 

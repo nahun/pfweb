@@ -820,7 +820,9 @@ def translate_rule(pfilter, **fields):
         fields.get('src_port_op', pf.PF_OP_NONE),
         fields.get('src_port_from', 0),
         fields.get('src_port_to', 0),
-        rule.proto, rule.af)
+        rule.proto,
+        fields.get('src_addr_iface'),
+        rule.af)
     # Destination Address Rule
     rule.dst = translate_addr_rule(
         fields.get('dst_addr'),
@@ -829,7 +831,9 @@ def translate_rule(pfilter, **fields):
         fields.get('dst_port_op', pf.PF_OP_NONE),
         fields.get('dst_port_from', 0),
         fields.get('dst_port_to', 0),
-        rule.proto, rule.af)
+        rule.proto,
+        fields.get('dst_addr_iface'),
+        rule.af)
 
     # Set any translation used NAT or RDR
     if fields.get('trans_type', 'none') != 'none' and (rule.af == socket.AF_INET or rule.af == socket.AF_INET6):
@@ -880,7 +884,7 @@ def translate_rule(pfilter, **fields):
 
     return rule
 
-def translate_addr_rule(addr, addr_type, addr_table, port_op, port_from, port_to, proto, af):
+def translate_addr_rule(addr, addr_type, addr_table, port_op, port_from, port_to, proto, addr_iface, af):
     """Parses fields given in the pfweb form to a pf.PFRuleAddr object"""
     pfaddr = False
     if addr_type == "addrmask" and af != socket.AF_UNSPEC:
@@ -891,6 +895,11 @@ def translate_addr_rule(addr, addr_type, addr_table, port_op, port_from, port_to
         if not addr_table:
             return "Table cannot be empty"
         pfaddr = pf.PFAddr("<" + str(addr_table) + ">")
+    elif addr_type == "dynif":
+        # Set addr to an interface
+        if not addr_iface:
+            return "Interface cannot be empty"
+        pfaddr = pf.PFAddr("({})".format(addr_iface), af)
 
     # Do not set if ANY or proto is ICMP
     port = False

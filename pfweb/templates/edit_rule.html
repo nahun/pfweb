@@ -97,6 +97,7 @@
                                 <option value="any"{% if rule.src_addr_type == 'any' %} selected{% endif %}>Any</option>
                                 <option value="addrmask" id="form_src_addrmask_type"{% if rule.src_addr_type == 'addrmask' %} selected{% endif %}>Host or Network</option>
                                 <option value="table"{% if rule.src_addr_type == 'table' %} selected{% endif %}>Table</option>
+                                <option value="dynif" {% if rule.src_addr_type == 'dynif' %} selected{% endif %}>Interface</option>
                             </select>
                         </div>
                         <div class="col-sm-6">
@@ -107,6 +108,11 @@
                             <select class="form-control" name="src_addr_table" id="src_addr_table" style="display: none;">
                                 {% for table in tables %}
                                 <option value="{{ table.name }}"{% if rule.src_addr == table.name %} selected{% endif %}>{{ table.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <select class="form-control" name="src_addr_iface" id="src_addr_iface" style="display: none;">
+                                {% for iface in ifaces if iface.lower() != 'all' %}
+                                <option value="{{ iface }}"{% if rule.src_addr.lower() == iface %} selected{% endif %}>{{ iface }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -150,6 +156,7 @@
                                 <option value="any"{% if rule.dst_addr_type == 'any' %} selected{% endif %}>Any</option>
                                 <option value="addrmask" id="form_dst_addrmask_type"{% if rule.dst_addr_type == 'addrmask' %} selected{% endif %}>Host or Network</option>
                                 <option value="table"{% if rule.dst_addr_type == 'table' %} selected{% endif %}>Table</option>
+                                <option value="dynif" {% if rule.dst_addr_type == 'dynif' %} selected{% endif %}>Interface</option>
                             </select>
                         </div>
                         <div class="col-sm-6">
@@ -160,6 +167,11 @@
                             <select class="form-control" name="dst_addr_table" id="dst_addr_table" style="display: none;">
                                 {% for table in tables %}
                                 <option value="{{ table.name }}"{% if rule.dst_addr == table.name %} selected{% endif %}>{{ table.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <select class="form-control" name="dst_addr_iface" id="dst_addr_iface" style="display: none;">
+                                {% for iface in ifaces if iface.lower() != 'all' %}
+                                <option value="{{ iface }}"{% if rule.dst_addr.lower() == iface %} selected{% endif %}>{{ iface }}</option>
                                 {% endfor %}
                             </select>
                         </div>
