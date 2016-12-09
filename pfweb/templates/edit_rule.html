@@ -24,7 +24,7 @@
                     <div class="form-group">
                         <label class="col-sm-2 control-label">Direction</label>
                         <div class="col-sm-10">
-                            <select class="form-control" name="direction" id="direction">
+                            <select class="form-control" name="direction" id="direction" onchange="toggle_fields();">
                                 <option value="in"{% if rule.direction == 'in' %} selected{% endif %}>In</option>
                                 <option value="out"{% if rule.direction == 'out' %} selected{% endif %}>Out</option>
                                 <option value="both"{% if rule.direction == 'both' %} selected{% endif %}>Both</option>
@@ -206,7 +206,7 @@
                             <div class="col-sm-2">
                                 <select class="form-control" name="trans_type" id="trans_type" onchange="trans_form_type(this.value);">
                                     <option value="none"{% if not rule.trans_type %} selected{% endif %}>None</option>
-                                    <option value="NAT"{% if rule.trans_type == 'NAT' %} selected{% endif %}>NAT</option>
+                                    <option value="NAT" id="trans_type_nat"{% if rule.trans_type == 'NAT' %} selected{% endif %}>NAT</option>
                                     <option value="RDR" id="trans_type_rdr"{% if rule.trans_type == 'RDR' %} selected{% endif %}>RDR</option>
                                 </select>
                             </div>

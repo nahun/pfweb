@@ -88,6 +88,16 @@ function toggle_fields() {
 	else {
 		// Show Translation
 		$('#translation_panel').show();
+		// Only allow NAT with 'out' direction
+		if($('#direction').val() == 'out') {
+			$('#trans_type_nat').prop('disabled', false);
+		}
+		else {
+			if($('#trans_type').val() == 'NAT') {
+				$('#trans_type').val('none');
+			}
+			$('#trans_type_nat').prop('disabled', true);
+		}
 
 		// Show ICMP and addrmask for both IPv4 and IPv6
 		$('#icmp_option').show();
