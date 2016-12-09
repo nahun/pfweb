@@ -86,14 +86,9 @@ function toggle_fields() {
 		});
 	}
 	else {
-		// Only show translation when IPv4
-		if($('#af').val() == 'IPv6') {
-			$('#translation_panel').hide();
-			$('#trans_type').val('none');
-		}
-		else {
-			$('#translation_panel').show();
-		}
+		// Show Translation
+		$('#translation_panel').show();
+
 		// Show ICMP and addrmask for both IPv4 and IPv6
 		$('#icmp_option').show();
 		$('#form_src_addrmask_type').prop('disabled', false);

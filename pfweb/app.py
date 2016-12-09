@@ -832,7 +832,7 @@ def translate_rule(pfilter, **fields):
         rule.proto, rule.af)
 
     # Set any translation used NAT or RDR
-    if fields.get('trans_type', 'none') != 'none' and rule.af == socket.AF_INET:
+    if fields.get('trans_type', 'none') != 'none' and (rule.af == socket.AF_INET or rule.af == socket.AF_INET6):
         pool = translate_pool_rule(
             fields.get('trans_type'),
             fields.get('trans_addr'),
@@ -841,7 +841,8 @@ def translate_rule(pfilter, **fields):
             fields.get('trans_port_from'),
             fields.get('trans_port_to'),
             rule.proto,
-            fields.get('trans_addr_iface'))
+            fields.get('trans_addr_iface'),
+            rule.af)
         
         if fields['trans_type'].lower() == 'rdr':
             rule.rdr = pool
@@ -849,8 +850,8 @@ def translate_rule(pfilter, **fields):
         else:
             rule.nat = pool
             rule.rdr.addr.type = pf.PF_ADDR_NONE
-    elif fields.get('trans_type', 'none') != 'none' and rule.af != socket.AF_INET:
-        return "Translation can only be used with IPv4"
+    elif fields.get('trans_type', 'none') != 'none':
+        return "Must specify IPv4 or IPv6 with translation"
     else:
         # Translation is disabled
         rule.rdr.addr.type = pf.PF_ADDR_NONE
@@ -928,11 +929,11 @@ def translate_addr_rule(addr, addr_type, addr_table, port_op, port_from, port_to
 
     return rule_addr
 
-def translate_pool_rule(trans_type, addr, addr_type, addr_table, port_from, port_to, proto, addr_iface):
+def translate_pool_rule(trans_type, addr, addr_type, addr_table, port_from, port_to, proto, addr_iface, af):
     """Parses fields given in the pfweb form to a pf.PFPool object"""
     pfaddr = False
     if addr_type == 'addrmask':
-        pfaddr = translate_addrmask(socket.AF_INET, addr)
+        pfaddr = translate_addrmask(af, addr)
     elif addr_type == 'table':
         if not addr_table:
             return "Table cannot be empty"
@@ -943,7 +944,7 @@ def translate_pool_rule(trans_type, addr, addr_type, addr_table, port_from, port
         if not addr_iface:
             return "Interface cannot be empty"
         # Set PFAddr to interface and IPv4
-        pfaddr = pf.PFAddr("({})".format(addr_iface), socket.AF_INET)
+        pfaddr = pf.PFAddr("({})".format(addr_iface), af)
 
     pool_id = pf.PF_POOL_NAT
     port = False
