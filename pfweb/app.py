@@ -894,7 +894,7 @@ def translate_addr_rule(addr, addr_type, addr_table, port_op, port_from, port_to
         # Set addr to a table
         if not addr_table:
             return "Table cannot be empty"
-        pfaddr = pf.PFAddr("<" + str(addr_table) + ">")
+        pfaddr = pf.PFAddr("<{}>".format(addr_table))
     elif addr_type == "dynif":
         # Set addr to an interface
         if not addr_iface:
@@ -946,7 +946,7 @@ def translate_pool_rule(trans_type, addr, addr_type, addr_table, port_from, port
     elif addr_type == 'table':
         if not addr_table:
             return "Table cannot be empty"
-        pfaddr = pf.PFAddr("<" + str(addr_table) + ">")
+        pfaddr = pf.PFAddr("<{}>".format(addr_table))
     elif addr_type == 'dynif':
         if trans_type.lower() == 'rdr':
             return "Cannot RDR to an interface"
