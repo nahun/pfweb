@@ -679,7 +679,7 @@ def get_addr_port(rule_addr):
             cidr = ntoc(rule_addr.addr.mask, rule_addr.addr.af)
 
             # Address in CIDR format
-            if cidr == 32 or cidr == 128:
+            if (cidr == 32 and rule_addr.addr.af == socket.AF_INET) or cidr == 128:
                 addr = rule_addr.addr.addr
             else:
                 addr = "{0.addr}/{1}".format(rule_addr.addr, cidr)
