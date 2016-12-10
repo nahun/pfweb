@@ -20,7 +20,7 @@ requires = [
     ]
 
 setup(name='pfweb',
-    version='0.1.0dev3',
+    version='0.1.0dev4',
     description='Simple web interface for the OpenBSD Packet Filter',
     long_description=__doc__,
     license='BSD',
