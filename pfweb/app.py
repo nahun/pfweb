@@ -1098,10 +1098,7 @@ def save_pfconf(pfilter):
     for t in tables:
         tables_pfconf.append("table <{}> persist {{ {} }}".format(t.name, " ".join("{}/{}".format(ta.addr, ntoc(ta.mask, ta.af)) for ta in t.addrs)))
 
-    # Use pfctl to get the rules
-    pfctl_rules = subprocess.check_output(["/sbin/pfctl", "-s", "rules"])
-
-    pfconf_text = "{}\n\n{}\n\n{}".format("\n".join(global_options), "\n".join(tables_pfconf), pfctl_rules)
+    pfconf_text = "{}\n\n{}\n\n{}\n".format("\n".join(global_options), "\n".join(tables_pfconf), str(pfilter.get_ruleset()))
 
     with open("/tmp/pf.conf.pfweb", 'w+') as pfconf_f:
         pfconf_f.write(pfconf_text)
