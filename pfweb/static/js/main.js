@@ -197,8 +197,10 @@ function trans_form_type(value) {
 	if(value == 'NAT') {
 		$("#form_trans_port").hide()
 		$("#form_trans_addr_type_dynif").prop('disabled', false);
+		$("#form_trans_staticport").show()
 	}
 	else if(value == 'RDR'){
+		$("#form_trans_staticport").hide()
 		$("#form_trans_port").show()
 		if($('#trans_addr_type').val() == 'dynif') {
 			$("#trans_addr_type").val('addrmask');

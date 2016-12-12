@@ -625,6 +625,7 @@ def get_rule(rule):
     new['trans_type'] = False
     if rule.nat.addr.type != pf.PF_ADDR_NONE and rule.nat.id == pf.PF_POOL_NAT:
         (new['trans_addr'], new['trans_addr_type'], new['trans_port_op'], new['trans_port']) = get_addr_port(rule.nat)
+        new['nat_static_port'] = True if rule.nat.proxy_port.num[0] == rule.nat.proxy_port.num[1] == 0 else False
         new['trans_type'] = 'NAT'
     # RDR
     elif rule.rdr.addr.type != pf.PF_ADDR_NONE and rule.rdr.id == pf.PF_POOL_RDR:
@@ -852,6 +853,9 @@ def translate_rule(pfilter, **fields):
             rule.rdr = pool
             rule.nat.addr.type = pf.PF_ADDR_NONE
         else:
+            # Enable static port option
+            if 'nat_static_port' in fields:
+                pool.proxy_port = pf.PFPort((0, 0))
             rule.nat = pool
             rule.rdr.addr.type = pf.PF_ADDR_NONE
     elif fields.get('trans_type', 'none') != 'none':
