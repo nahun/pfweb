@@ -257,14 +257,4 @@ Restart supervisord and you should be good to go.
 
 ## Screenshots
 
-### Home Dashboard:
-![Dashboard](http://i.imgur.com/H51Eheg.png)
-
-### Rules list:
-![Rules](http://i.imgur.com/hvbV5B4.png)
-
-### Add or edit a rule:
-![Edit Rule](http://i.imgur.com/mCTbGKR.png)
-
-### Tables list:
-![Tables](http://i.imgur.com/gnvPpLq.png)
+[Imgur Album](http://imgur.com/a/JsqCF)
