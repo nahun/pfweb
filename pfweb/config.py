@@ -26,8 +26,11 @@ class Config():
         """Store config settings into the class"""
         _config_parse = self._read_file()
 
-        _required = { 'main': ['secret_key', 'salt', 'username', 'password'] }
-        _optional = { 'global': ['state_policy'] }
+        _required = { 'main': ['secret_key', 'salt'] }
+        _optional = {
+            'main': ['username', 'password'],
+            'global': ['state_policy']
+        }
 
         for section, params in _required.iteritems():
             for param in params:

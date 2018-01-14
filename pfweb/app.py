@@ -61,6 +61,9 @@ def before_request():
 def login():
     """Show login page and authenticate user"""
 
+    if not settings.username or not settings.password:
+        return "Config Error: username or password is not set"
+
     # Initialize alert message
     message = None
 
@@ -388,7 +391,10 @@ def edit_table(table_name=None):
         if ' ' in str(table_name).strip():
             raise BadRequestError('Table name cannot contain spaces')
         elif table_name:
-            packetfilter.set_addrs(table_name, *table_addrs)
+            try:
+                packetfilter.set_addrs(table_name, *table_addrs)
+            except IOError:
+                raise BadRequestError('Invalid address')
         else:
             if is_blank(request.form.get('name')):
                 raise BadRequestError('Table name cannot be empty')
