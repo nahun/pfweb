@@ -196,7 +196,7 @@ def dash():
 
     # Get overall PF stats
     pf_status = packetfilter.get_status()
-    pf_status_since = current_time - int(pf_status.since)
+    pf_status_since = pf._utils.uptime() - int(pf_status.since)
     pf_info = {
         'enabled': pf_status.running,
         'since': timedelta(seconds=pf_status_since),
